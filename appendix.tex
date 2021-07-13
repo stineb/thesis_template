@@ -1,0 +1,460 @@
+\chapter{Appendix}
+% \section{The global carbon budget 1959-2011}
+% \label{sec:app.lequere}
+% \clearpage
+% \setcounter{ct}{1} \forLoop{1}{21}{ct} {
+% \begin{figure}
+% \begin{center}
+% \includegraphics[width=1.00\textwidth, clip]{../papers/lequere13essd/lequere13essd_carbon_budget_gcp_cropped_\arabic{ct}}
+% \end{center}
+% \end{figure}
+% \clearpage }
+
+
+% \section{Transient simulations of the carbon and nitrogen dynamics in northern peatlands}
+% \label{sec:app.spahni}
+% \setcounter{ct}{1} \forLoop{1}{22}{ct} {
+% \begin{figure}
+% \begin{center}
+% \includegraphics[width=1.00\textwidth, clip]{../papers/spahni13cp/spahni13cp_peatcal_cropped_\arabic{ct}}
+% \end{center}
+% \end{figure}
+% \clearpage }
+
+\section{LPX-Bern, Version 1.0}
+\label{sec:app.lpx}
+We established a version naming for the different generations of LPJ. LPX emerged from the Bern version of LPJ. The model is ultimately rooted in \cite{sitch03gcb} (LPJ 0.0) and has been integrated into Bern-CC model and adapted by \cite{gerber03diss} (LPJ 1.0), \cite{strassmann08diss} (LPJ 2.0), and from then on was successively adapted under the Bern subversion version control system (LPJ 3.0).
+
+LPX-Bern, Version 1.0, simulates N cycle dynamics as adopted from the DyN-LPJ model \citep{xuri08gcb} and is extended to include model inputs for atmospheric N deposition and mineral N fertilisers on croplands. Further, the implementation of nitrogen pools and fluxes is made compatible with the land use change and peatland schemes as implemented in earlier versions of LPJ (LPJ 2.0 - 3.2). LPX-Bern, Version 1.0 (thereafter referred to as LPX) thus refers to the model version including the multi-layer soil hydrology and heat transfer scheme of \citet{wania09gbca, spahni11bg}, the land use change scheme of \citet{strassmann08tel} and the scheme for carbon dynamics on peatlands \citep{wania09gbca}. This model version has been applied in \citet{stocker13natcc}, \citet{spahni13cp}, and \citet{lequere13essd}.
+
+\myparagraph{DyN compatible with LU}
+In LPJ 2.0 and later, vegetation is simulated independently in a number of ``tiles'' in each gridcell. The following principles are applied to N-specific pools and fluxes:
+\begin{itemize}
+  \item Organic N pools are converted and reallocated to new land classes/product pools in parallel with organic C pools (leaf mass, root mass, litter, soil etc.).
+  \item Inorganic N pools (NO$_3$, NH$_4$, NO$_2$, NO$^w$, NO$^d$, N$_2$O$^w$, N$_2$O$^d$, N$_2^w$,) are converted and reallocated analogously to soil C pools.
+  \item No direct N$_2$O emissions result from land use change.
+\end{itemize}
+
+\myparagraph{Retuning soil carbon pools}
+The coupled C-N dynamics feed back on the size of C pools. Most imporantly, NPP, and hence equilibrium soil and litter C stocks, are reduced, particularly at high northern latitudes. This necessitated substantial adjustments compared to carbon-only LPX versions.
+
+\begin{itemize} 
+  \item \textsf{Retuning mineral soil C pool}\\
+The numerous changes that have been implemented in LPX over the past years result in a reduction of the simulated soil C pool from $\sim$1500 GtC (LPJ 3.1) to $\sim$950 GtC even when LPX is run without DyN. Changes responsible are: 
+\begin{itemize}
+      \item Exudates: reduction of NPP by 17.5\% leads to an equivalent reduction of the equilibrium soil C pool. Note that in areas with marginal plant growth the reduction might be higher due increased mortality at lower NPP.
+      \item Soil hydrology/heat transfer scheme: Leads to a suppression of plant growth in cold regions. This leads to a a substantial reduction of global soil C pools but also to a much better match with observations in these regions. Soil moisture used to simulate nitrification and denitrification is based on the top 50 cm (top 4 layers). Soil temperature is based on the temperature at 25 cm depth (for nitrification and denitrification) and on the warmest soil layer for N uptake.
+    \end{itemize}
+Soil turnover and {\tt atmfrac} were adjusted to best match observational data \citep{batjes08, tarnocai09gbc}. Soil turnover is reduced by 30\% (new model parameter {\tt ksoil\_tune} = 0.7) and {\tt atmfrac} is reduced from 0.7 to 0.6. Changing the parameter {\tt atmfrac} implies an altered cycling of N (see below).
+
+% \begin{figure}[ht!]
+% \begin{center}
+% \includegraphics[width=0.65\textwidth,angle=90]{/alphadata01/bstocker/analysis/plots/soilc_IGBP-DIS.pdf}
+% \includegraphics[width=0.65\textwidth,angle=90]{/alphadata01/bstocker/analysis/plots/soilc_tarnocai.pdf}
+% %\includegraphics[width=0.45\textwidth,angle=90]{/alphadata01/bstocker/analysis/plots/keyshade_run10_historical_soilcarbon.pdf}
+% \end{center}
+% \caption{Soil carbon content from observations. Top: \citet{batjes08}, Middle: \citet{tarnocai09gbc}, Bottom: simulated, {\tt run1.0\_historical}}
+% \label{fig:soilCmineral}
+% \end{figure}
+
+The two parameters {\tt atmfrac} and the soil decay constant have very similar effects, in that they linearly increase or decrease equilibrium soil C pools absent any C-N interaction. However, the transient dynamics of the pools are affected when the decay constant is changed, but not when {\tt atmfrac} is changed. On the other hand, {\tt atmfrac} affects the implicit N source. 
+
+The choice of parameters taken here is a compromise in that both are changed (a little) instead of only one (a lot). Figure \ref{fig:paramtest2} illustrates effects of using a standard parameter set ({\tt atmfrac}, soil turnover, N$_2$O from denitrification) of (0.7, -50\%, 1.8\%) instead of the standard parameter set (0.6, -30\%, 1.2\%). The soil C distribution as well as the global total stock are nearly identical for the two parameter combinations (not shown). However, the temporal evolution of the total terrestrial C balance is significantly affected by the choice of parameters.
+
+% \begin{figure}[ht!]
+% \begin{center}
+% \includegraphics[width=0.65\textwidth,angle=90]{/alphadata01/bstocker/analysis/plots/soilc_IGBP-DIS.pdf}
+% \includegraphics[width=0.65\textwidth,angle=90]{/alphadata01/bstocker/analysis/plots/soilc_tarnocai.pdf}
+% \includegraphics[width=0.45\textwidth,angle=0]{/alphadata01/bstocker/multiGHG_analysis/fig_old/soilC_paramtest_run10_historical.pdf}
+% \includegraphics[width=0.45\textwidth,angle=0]{/alphadata01/bstocker/multiGHG_analysis/fig_old/soilC_paramtest_run10_historical_ks05_af07.pdf}\\
+% \end{center}
+% \caption{Soil/litter carbon distribution for the standard parameter combination ({\it left}) and for ({\tt atmfrac}, soil turnover, N$_2$O from denitrification)=(0.7, -50\%, 1.8\%) ({\it right}).}
+% \label{fig:paramtest}
+% \end{figure}
+
+\begin{figure}[ht!]
+\begin{center}
+\includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/multiGHG_analysis/fig_old/dC_paramtest.pdf}
+\end{center}
+\caption{Change in total terrestrial C for simulation {\tt r1\_historical} (see Section \ref{sec:multiGHG}) with the standard and alternative parameter combination (({\tt atmfrac}, soil turnover, N$_2$O from denitrification)=(0.7, -50\%, 1.8\%))}
+\label{fig:paramtest2}
+\end{figure}
+
+
+\item \textsf{Retuning parameters for soil C effect on croplands and pastures}\\
+    The scheme to simulate harvest on croplands and pastures as implemented in LPX is based on \citet{shevliakova09gbc}. We additionally increased soil turnover on croplands to simulate increased oxidation of soil organic matter due to tillage. Parameters are chosen to best match observational data \citet{davidson93, murty02gcb, guogifford02gcb}, which suggest a decrease in soil C pools by about 30\% when natural land is converted to croplands and a non-significant change for the conversion to pastures:
+    \begin{itemize}
+      \item On croplands, soil turnover is increased by 20\% relative to natural soils and 90\% of annual leaf turnover is directly oxidized instead of diverted to the litter pools.
+      \item On pastures, soil turnover is equal to natural land, while 40\% of annual leaf turnover is directly oxidized.
+    \end{itemize}
+
+% \begin{figure}[ht!]
+% \begin{center}
+% \includegraphics[width=0.35\textwidth,angle=90]{/alphadata01/bstocker/analysis/plots/crequi_kcr12_ox09.pdf}
+% \includegraphics[width=0.35\textwidth,angle=90]{/alphadata01/bstocker/analysis/plots/paequi_kpa10_ox04.pdf}
+% \end{center}
+% \caption{Soil carbon change due to land use change (left: conversion to cropland, right: conversion to pasture). Relative units. After 5000 yrs. 'Mean effect' as given on top left is weighted by 2000-AD cropland/pasture distribution.}
+% \label{fig:soilClucequi}
+% \end{figure}
+
+\item \textsf{\nno\ from denitrification}\\
+  Changing the parameter {\tt atmfrac} implies an altered cycling of N. Note that in the model, the N source (\nn\ fixation) results from holding the C:N ratio constant in the organic soil pools. Thus, this implicit N source scales with the C-flux from litter to soil, which again scales with $(1-\text{\tt atmfrac})$. In other words, reducing {\tt atmfrac} from 0.7 to 0.6 should increase the implicit N source by 33\%. This N source is balanced by N losses. In equilibrium, source and losses are equal. Fig. \ref{fig:paramtest2} illustrates how cumulative N losses increase when {\tt atmfrac} is reduced and how the temporal evolution of the \nno\ increase is affected by the choice of parameter values. 
+
+N$_2$O emissions scale with N losses. Thus, increasing the implicit N source should increase N$_2$O emissions along with total N losses. For this reason, the parameter determining N$_2$O emissions from denitrification was reduced from 1.8\% to 1.2\% to get a preindustrial N$_2$O flux of $\sim$6.4 TgN/yr. Fig. \ref{fig:eN2O_modobs} illustrates modelled versus observed N$_2$O emissions. The model performance is not negatively affected by the changes implemented here (reducing {\tt atmfrac} and reducing fraction of N$_2$O emissions from denitrification). The correlation coefficient is even slightly increased from 82.7 to 84.7\% when comparing results from \citet{xuri08gcb} with results from simulation {\tt r1\_historical}. In simulation {\tt r1\_historical\_ks0.5\_af0.7} the correlation coefficient is 83.5\%.
+
+%\begin{figure}[ht!]
+%\begin{center}
+%\includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/multiGHG_analysis/fig_old/eN2O_paramtest.pdf}
+%\includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/multiGHG_analysis/fig_old/dN_paramtest.pdf}
+%\end{center}
+%\caption{Change in e\nno\ and N loss for simulation {\tt r1\_historical} with the standard and alternative parameter combination (see text).}
+%\label{fig:paramtest2}
+%\end{figure}
+
+\begin{figure}[ht!]
+\includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/multiGHG_analysis/fig/eN2O_mod_vs_obs_xuri.pdf}\\
+\includegraphics[width=0.38\textwidth,angle=90]{/alphadata01/bstocker/multiGHG_analysis/fig_old/eN2O_mod_vs_obs_run10_historical.pdf}
+\includegraphics[width=0.38\textwidth,angle=90]{/alphadata01/bstocker/multiGHG_analysis/fig_old/eN2O_mod_vs_obs_run10_historical_ks05_af07.pdf}
+\caption{Simulated eN$_2$O versus observed emissions \citep{xuri08gcb}. {\it top:} Modelled values from \citet{xuri08gcb}. {\it bottom left:} Modelled values from ({\tt r1\_historical}), only natural land use class. {\it bottom right:} Modelled values from simulation {\tt r1\_historical\_ks0.5\_af0.7} with {\tt atmfrac}=0.7 and soil turnover reduced by 50\%.}
+\label{fig:eN2O_modobs}
+\end{figure}
+
+\item \textsf{\nno\ from leached N}\\
+  N$_2$O emissions from surface waters are taken as a fraction (0.6\%) of total leached N. This yields a flux of $\sim$0.82 TgN/yr for present-day (preindustrial $\sim$0.69 TgN/yr). This estimate is consistent with values from \citet{zaehle11ngeo}. The NetCDF output does not explicitly include this N$_2$O source. It is only used to pass on total N$_2$O emissions to Bern3D.
+
+\end{itemize}
+ 
+\myparagraph{DyN on peatlands}
+In LPX, C-N dynamics lead to a suppression of NPP on peatlands. This is due to slow remineralization rates in water-logged soils, low temperatures inhibiting N uptake and high C:N ratios in the soil. As a result, simulated C accumulation is not sufficient to match observations of present-day C stocks in peatlands \citep{yu10grl} and C accumulation dynamics over the last deglaciation \citep{yu11hol}. In LPX, all N-related processes (nitrification, denitrification, volatilization, leaching) operate like in mineral soils. Soil moisture is based on the top 30 cm (top 3 layers); soil temperature determining nitrification and denitrificaion is taken from 25 cm depth. Several parameters were adjusted to best match observations for C accumulation in 1000-year bins from \citet{yu11hol} (see published paper by \citet{spahni13cp}):\\
+\begin{itemize}
+  \item Acrothelm turnover rate constant {\tt k\_soil\_acro10} is reduced from $0.1$ to $0.04$
+  \item Catothelm turnover rate constant {\tt k\_soil\_cato10} is reduced from $0.001$ to $0.0004$
+  \item An additional N source of \PG{0.2}{g/m2/yr} (compatible with data for biological N-fixation on peatlands (0.1-1 g/m2/yr) \citep{limpens06}) is prescribed on all peatlands.
+\end{itemize}
+A more thorough documentation of the implementation of coupled C-N dynamics in the peatland module is presented in \citet{spahni13cp}.
+\clearpage
+
+\myparagraph{Other model changes}
+\begin{itemize}
+  \item \textsf{Bugfix in FPC calculation}\footnotemark[1]\\
+ Non-linearity of Beer-Lambert relation introduced a problematic model behaviour when two grass PFTs coexist. The non-linearity of the Beer-Law (\ref{eq:beer}, LAI is a linear function of $l$) implies that the total fractional plant cover (FPC) of the leaf masses of two different PFTs ($l_1$ and $l_2$) is larger than the FPC of the sum of the two leaf masses ($l_1+l_2$):
+\begin{align}
+\mathrm{FPC}(l) &= 1 - e^{-k_{\text{Beer}}\,\text{LAI}(l)} \\
+\label{eq:beer}
+\mathrm{FPC}(l_1+l_2) &< \mathrm{FPC}(l_1) + \mathrm{FPC}(l_2)
+\end{align}
+In the LPJ model version of \citet{sitch03gcb}, FPC exceeds 1 (100\%) after allocation when two grass PFTs coexist. As a result, their leaf mass is then reduced back to 100\% and excess C enters the litter pool. The effect is that, due to distributing the C assimilated over an area which is too large and cutting off the excess, you will end up with a lower C-density in the vegetation. This in turn leads to a smaller autotrophic respiration $\rightarrow$ higher NPP $\rightarrow$ even more allocation $\rightarrow$ again FPC > 100\% $\rightarrow$ higher litter input (excess C) $\rightarrow$ higher soil C stocks.
+
+The new approach calculates the total grass FPC as FPC$_{\text{tot}}=\text{FPC}(l_1+l_2)$ instead of FPC$_{\text{tot}}=\mathrm{FPC}(l_1) + \mathrm{FPC}(l_2)$. And the individual PFT's FPC is then
+\begin{equation}
+\text{FPC}(l_1) = \frac{l_1}{l_1+l_2}\cdot\text{FPC}(l_1+l_2)
+\end{equation}
+This way, the results are more or less identical when only one grass PFT is allowed to grow compared to a case where two identical grass PFTs are allowed to grow (results not shown).
+
+  \item \textsf{PFT parameter changes}\footnotemark[2]
+    \begin{itemize}
+      \item PFT Boreal Needle-leaved Summergren (BoNS) is removed again after it has been introduced into LPJ 3.2. 
+      \item The cold-limit for C4 grasses is removed. 
+    \end{itemize}
+\end{itemize}
+\footnotetext[1]{see also email by Beni Stocker, 25 January, 2012}
+\footnotetext[2]{see email by Colin Prentice, 31 December, 2011}
+\clearpage 
+
+\section{Drainage limitation for a better representation of inundated areas? }
+\label{app:soilwater}
+
+The gridcell fraction of inundated area $f$ and peatland area $f_{\text{peat}}$ are subject to the simulated ``water table position'' WTPOS and ultimately to the simulated soil water balance. The soil water, surface and drainage runoff are modeled in LPX-Bern by a relatively simple ``two-bucket'' approach based on the original LPJ \citep{sitch03gcb}. Later, this model has been extended to account for water mass as stored in multiple soil layers and the resulting heat diffusion, as well as melting and thawing, while soil moisture as the governing variable for plant water status is still simulated as a scalar index as described in \citep{sitch03gcb}. This ``mixed'' approach allows for simulating the restriction of percolation when frozen soil layers are present while still maintaining computational efficiency (as compared to a model where the full water budget and its vertical diffusion/percolation is resolved for each soil layer).\\
+
+In this Section \ref{app:soilwater}, I describe the equations governing the soil water balance in LPX-Bern and how the limitation of sub-soil permeability and its related groundwater recharge rate can be implemented. A global dataset for sub-soil permeability \citep{gleeson11grl} has recently become available and is designed for applications in Earth System models.
+
+\subsection{Soil water model}
+Soil water, as well as surface and drainage runoff are simulated in LPX-Bern by a relatively simple ``two-bucket'' approach. Heat diffusion and thawing/melting processes are simulated for eight soil layers, four of which make up the top and the other four the bottom bucket. Soil water is evenly distributed between layers in each bucket. The total water input into the top bucket (subscript '1') is given by precipitation minus interception in the canopy ($p$), water from snow melt ($m$), evaporation ($e$), plant transpiration determined by photosynthesis ($t_1$), percolation from the top to the bottom bucket ($\text{perc}_1$), and runoff ($\text{runoff}_{\text{surf.}}$). $\text{perc}_1$ is the only input into the bottom bucket, while outputs are given by transpiration ($t_2$) and percolation out of the bottom bucket ($\text{perc}_2$). All terms are in mm, which is equivalent to l/m$^2$, or kg/m$^2$.
+\begin{align}
+\label{eq:waterbal}
+\frac{\text{d} W_1}{\text{d} t} &= p + m - e - t_1 - \text{perc}_1 - \text{runoff}_{\text{surf.}} \\
+\frac{\text{d} W_2}{\text{d} t} &=  \text{perc}_1 - t_2 -  \text{perc}_2
+\end{align}
+Percolation out of the top bucket is simulated following an empirical parametrisation, and is limited by available pore volume ($V_{\text{p}}$) in the bottom bucket, and is constrained by the amount of water ($W_1^{\star}$) beneath frozen soil layers which prevent water from percolating downwards: 
+\begin{equation}
+\text{perc}_1 = \min( V_{\text{p}}, \; W_1^{\star}, \; k_{\text{perc}}\cdot \theta_1^{2} )
+\end{equation}
+$k_{\text{perc}}$ is an empirical parameter for the percolation rate at field capacity and depends on soil texture. It is prescribed here for each grid cell. Values are between 3 to 4 mm/d for most soils, but are 0.2 mm/d for fine-grained vertisols and 9.0 mm/d for organic soils \citet{sitch03gcb}. $\theta$ is a unitless soil moisture index which is 0 if soil water content ($W$, in mm) is at the permanent wilting point ($W=W_{\text{PWP}}$) and 1 if soil moisture is at the field capacity ($W=W_{\text{FC}}$). 
+\begin{equation}
+  \theta = \frac{ W - W_{\text{PWP}} } { W_{\text{FC}} - W_{\text{PWP}} }
+\label{eq:soilmind}
+\end{equation}
+$\theta$ is a key variable in LPX governing plant water stress, methane production in mineral soils, and denitrification.\\
+
+Surface runoff is generated when top bucket soil water storage exceeding field capacity cannot be fully percolated to the lower box.
+\begin{equation}
+\text{runoff}_{\text{surf.}}= \max(\;0,\; W_1 - W_{\text{FC}} - \text{perc}_1\;)
+\label{eq:runoffsurf}
+\end{equation}
+Percolation out of the bottom bucket (drainage runoff) is limited by the percolation as formulated for the top bucket (but with $k_{\text{perc}}$ values being 50\% lower to take into account generally higher clay content at lower soil depths) and the sub-soil permeability which limits drainage (groundwater recharge):
+\begin{align}
+\text{perc}_2 &= \min(\; W_2^{\star}, \; \text{potential percolation}, \; \text{potential drainage} )\\
+\text{potential percolation} &= \frac{1}{2}\cdot k_{\text{perc}}\cdot \theta_2^2 \\
+%\text{potential drainage} &=k_{\text{drain}} \cdot \left(\frac{ W_2 - W_{\text{FC}} }{\Delta z}\right)^2
+\text{potential drainage} &= \left\{
+\begin{array}{l l}
+    0 & \quad \text{, $W_2 < W_{\text{FC}}$}\\
+    k_{\text{drain}} \cdot \left(\frac{ W_2 - W_{\text{FC}} }{\Delta z}\right)^2 & \quad \text{, $W_2 \ge W_{\text{FC}}$}
+  \end{array} \right.
+\end{align}
+Again, $W_1^{\star}$ is the amount of water in the lower bucket beneath frozen soil layers which prevent water from percolating downwards. The drainage parameter ($k_{\text{drain}}$) reflects the permeability of the sub-soil lithology and affects the drainage rate. Note that only water in excess of the field capacity actually drains and feeds into groundwater recharge (drainage runoff). In general, $k_{\text{drain}}$ is a parameter which relates the water flow velocity across a permeable substrate ($v$) to the pressure head ($\frac{\Delta p}{\Delta z}$):
+\begin{equation}
+v = k_{\text{drain}} \; \frac{\Delta p}{\Delta z}
+\end{equation}
+In the approach followed here, $( ( W_2 - W_{\text{FC}} ) / \Delta z )^2$ takes the role of $\frac{\Delta p}{\Delta z}$. Values for the drainage parameter ($k_{\text{drain, Gleeson}}$) are from \citet{gleeson11grl} and are on the order of $10^{-12}$ to $10^{-15}$ (see Figure \ref{fig:perm}). To accomodate values provided by \citet{gleeson11grl} within the approach chosen here, their values ($k_{\text{drain, Gleeson}}$) are multiplied by a globally constant factor $\omega$: $k_{\text{drain}}=\omega \cdot k_{\text{drain, Gleeson}}$. The effect of varying this factor between $0, 10^{15}, 10^{17}$, and no limit (perc$_2$=potential percolation) is illustrated in Figures \ref{fig:soilmoist_top}-\ref{fig:inund}.
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/permeability_gleeson.pdf}
+\end{center}
+\caption{Negative of logarithm of $k_{\text{drain}}$ ($-\log_{10}(k_{\text{drain}})$) from \citet{gleeson11grl}. High values (red colors) represent areas with small permeability limitation (efficient drainage).}
+\label{fig:perm}
+\end{figure}
+
+%Heat diffusion and thawing/melting processes are simulated for eight soil layers, four of which make up the top and the other four the bottom bucket. Soil water is evenly distributed between layers in each bucket.\\
+
+Differences in the above presented soil water model compared to earlier model versions (LPX 1.0 and older) are (i) the limitation of perc$_2$ by sub-soil permeability, (ii) the limitation of perc$_1$ by non-water filled pore volume ($V_{\text{p}}$) in the lower bucket, and (iii) the limitation of perc$_{1,2}$ by the presence of frozen layers within the buckets. Points (ii) has only a small effect on results because $\theta_2$ most often is below $\theta_{\text{FC}}$, and thus $V_{\text{p}}$ is rarely small and limiting. Point (iii) has only a small effect on results because $\theta$ is reduced when water is frozen, and thus percolation is reduced even without the explicit limitation on percolation by (iii). Point (i) has a considerable effect on $\theta_2$ (but much less on $\theta_1$), which is assessed in more detail in the following section.
+
+
+\subsection{Benchmarking the sub-soil permeability implementation}
+\label{app:permbench}
+Benchmarking the performance of the soil water balance model implemented in LPX is not straight-forward due to (i) the nature of available observational data and (ii) the nature of the soil water balance model itself. Here, we rely on a reanalysis product for soil moisture which integrates satellite and ground-based observational data \citep{rodell04bams}, but does not account for spatial variations in sub-soil permeability. This limits the power of benchmarking with respect to this effect. We thus follow a rather qualitative check that should allow a conclusion about the plausibility of the sub-soil permeability representation and its effect on soil moisture, particularly on deep soil layers. It should also be noted that the soil water balance model in LPX is formulated so that the maximum soil water storage is reached already at field capacity, the pore volume is thus never fully saturated. %Additional water inputs that would drive soil moisture beyond field capacity generate surface and drainage runoff (see Equation \ref{eq.runoffsurf}). 
+Observational data is provided in units of kg/m$^2$ (equivalent to mm water column) and is compared here to model data provided as a fraction ranging from 0 at $\theta_{\text{PWP}}$ to 1 at $\theta_{\text{FC}}$.\\
+
+Soil moisture is an important key variable in LPX that determines plant water stress, heterotrophic respiration, methanogenesis, nitrification, and denitrification rates. It thus impacts vegetation cover, carbon storage in plants and soil, and greenhouse-gas emissions from soils. In spite of these wide-ranging effects, we attempt to constrain soil moisture as an independent variable and omit using information about the model performance to simulate, e.g., greenhouse-gas emissions to constrain soil moisture.\\
+
+Here, we assessed the model performance for soil moisture in the upper (0-50 cm, Figure \ref{fig:soilmoist_top}) and lower soil layers ($>$50 cm, Figure \ref{fig:soilmoist_bottom}), soil moisture seasonality (Figures \ref{fig:season_top}, and \ref{fig:season_bottom}), and surface runoff (Figure\ref{fig:runoff}). 
+
+\clearpage 
+
+\subsubsection{Soil moisture in upper bucket}
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_top_obs.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_top_corr.pdf}
+\end{center}
+\caption{Left: Observation-based soil moisture in the top 40 cm as a fraction of soil volume from \citep{rodell04bams}. Information of soil pore volume is from HWSD \citep{hwsd}. Right: modeled vs. observational-based soil moisture in the top 40 cm (obs.) and top 50 cm (model) (both unitless). Each point represents a gridcell and month. Note that obervational data values corresponding to the permanent wilting point in the respective grid cell correspond to zero in the scale of the model data, where $\theta=0$ for $\theta=\theta_{\text{PWP}}$.}
+\label{fig:soilmoist_top_obs}
+\end{figure}
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_top_drain1e15.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_top_drain0.pdf}\\
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_top_drain1e17.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_top_drainnolimit.pdf}
+\end{center}
+\caption{Soil moisture index of the top bucket (upper 50 cm). Upper left: Implemented permeability limitation with drainage parameter $\omega=1\cdot 10^{15}$. Upper right: drainage completely suppressed. Lower left: $\omega=1\cdot 10^{-17}$. Lower right: Drainage is not limiting (as in previous model version.}
+\label{fig:soilmoist_top}
+\end{figure}
+
+\clearpage
+\subsubsection{Soil moisture in bottom bucket}
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_bottom_obs.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_bottom_corr.pdf}
+\end{center}
+\caption{Left: Observation-based soil moisture in the bottom 160 cm as a fraction of soil volume from \citep{rodell04bams}. Information of soil pore volume is from HWSD \citep{hwsd}. Right: modeled vs. observational-based soil moisture in the top 160 cm (obs.) and top 150 cm (model) (both unitless). Each point represents a gridcell and month. Note that obervational data values corresponding to the permanent wilting point in the respective grid cell correspond to zero in the scale of the model data, where $\theta=0$ for $\theta=\theta_{\text{PWP}}$.}
+\label{fig:soilmoist_bottom_obs}
+\end{figure}
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_bottom_drain1e15.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_bottom_drain0.pdf}\\
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_bottom_drain1e17.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_bottom_drainnolimit.pdf}
+\end{center}
+\caption{Soil moisture index of bottom bucket (lower 160 cm). Upper left: Implemented permeability limitation with drainage parameter $\omega=1\cdot 10^{15}$. Upper right: drainage completely suppressed. Lower left: $\omega=1\cdot 10^{-17}$. Lower right: Drainage is not limiting (as in previous model version).}
+\label{fig:soilmoist_bottom}
+\end{figure}
+
+\clearpage
+\subsubsection{Soil moisture seasonality}
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=0.3\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_top_season_50N_80N.pdf}
+  \includegraphics[width=0.3\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_top_season_0N_20N.pdf}
+  \includegraphics[width=0.3\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_top_season_20S_0S.pdf}\\
+  \includegraphics[width=0.3\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_top_obs_season_50N_80N.pdf}
+  \includegraphics[width=0.3\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_top_obs_season_0N_20N.pdf}
+  \includegraphics[width=0.3\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_top_obs_season_20S_0S.pdf}\\
+\end{center}
+\caption{Mean seasonality in top bucket by latitudinal bands (columns from left to right, 50-80\degrees N, 0-20\degrees N, 0-20\degrees S). Top panel: Model data. Bottom panel: observational data as a fraction of pore volume.}
+\label{fig:season_top}
+\end{figure}
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=0.3\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_bottom_season_50N_80N.pdf}
+  \includegraphics[width=0.3\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_bottom_season_0N_20N.pdf}
+  \includegraphics[width=0.3\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_bottom_season_20S_0S.pdf}\\
+  \includegraphics[width=0.3\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_bottom_obs_season_50N_80N.pdf}
+  \includegraphics[width=0.3\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_bottom_obs_season_0N_20N.pdf}
+  \includegraphics[width=0.3\textwidth]{/alphadata01/bstocker/topmodel/fig/soilmoist_bottom_obs_season_20S_0S.pdf}\\
+\end{center}
+\caption{Mean seasonality in bottom bucket by latitudinal bands (columns from left to right, 50-80\degrees N, 0-20\degrees N, 0-20\degrees S). Top panel: Model data. Bottom panel: observational data as a fraction of pore volume.}
+\label{fig:season_bottom}
+\end{figure}
+
+
+\clearpage
+\subsubsection{Runoff}
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/runoff_top_obs.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/runoff_corr.pdf}
+\end{center}
+\caption{Left: Observation-based annual runoff [mm/m$^2$/yr] \citep{grdc}. Right: modeled vs. observational-based runoff. Each point represents a gridcell and month.}
+\label{fig:runoff_obs}
+\end{figure}
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/runoff_drain1e15.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/runoff_drain0.pdf}\\
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/runoff_drain1e17.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/runoff_drainnolimit.pdf}
+\end{center}
+\caption{Annual runoff [mm/m$^2$/yr]. Upper left:  Implemented permeability limitation with drainage parameter $\omega=1\cdot 10^{15}$. Upper right: drainage completely suppressed. Lower left: $\omega=1\cdot 10^{-17}$. Lower right: Drainage is not limiting (as in previous model version).}
+\label{fig:runoff}
+\end{figure}
+
+\clearpage
+\subsubsection{Inundated areas}
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_max_drain1e15.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_max_drain0.pdf}\\
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_max_drain1e17.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_max_drainnolimit.pdf}
+\end{center}
+\caption{Maximum monthly inundated areas. Climatology for years 1993-2004 AD. Upper left:  Implemented permeability limitation with drainage parameter $\omega=1\cdot 10^{15}$. Upper right: drainage completely suppressed. Lower left: $\omega=1\cdot 10^{-17}$. Lower right: Drainage is not limiting (as in previous model version).}
+\label{fig:inund}
+\end{figure}
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_ave_drain1e15.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_ave_drain0.pdf}\\
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_ave_drain1e17.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_ave_drainnolimit.pdf}
+\end{center}
+\caption{Average monthly inundated areas. Climatology for years 1993-2004 AD. Upper left: New ``standard'' with drainage parameter $\omega=1\cdot 10^{15}$. Upper right: drainage completely suppressed. Lower left: $\omega=1\cdot 10^{-17}$. Lower right: Drainage is not limiting (as in previous model version).}
+\label{fig:inund}
+\end{figure}
+\clearpage
+
+\subsubsection{Effect on vegetation}
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/gpp_diff.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/fpc_diff.pdf}
+\end{center}
+\caption{Effect of drainage limitation on GPP (left, in percent) and fractional plant cover (FPC, right, in area fraction).}
+\label{fig:vegdiff}
+\end{figure}
+
+\subsection{Discussion and conclusion}
+\label{sec:gleeson}
+
+The permeability of sub-soil substrate determines the rate of groundwater recharge and thus, how efficiently the soil column is drained. Sub-soil permeability varies greatly across regions characterized by different sub-soil substrates. \citet{gleeson11grl} gathered this information and provide a global dataset that characterizes sub-soil permeability on spatial scales relevant for applications in Earth System models. Here, we tested whether this additional information can improve the model performance for the simulation of inundated areas and peatlands. For the benchmarking (see Appendix \ref{app:permbench}), we assessed soil moisture in the upper (0-50 cm, Figure \ref{fig:soilmoist_top}) and lower soil layers ($>$50 cm, Figure \ref{fig:soilmoist_bottom}), soil moisture seasonality (Figures \ref{fig:season_top}, and \ref{fig:season_bottom}), and surface runoff (Figure \ref{fig:runoff}).\\
+In general, drainage limitation has little effects on the simulated soil water content of the upper soil layers (upper bucket in LPX-Bern), and thus has only a neglibible effect on surface runoff and cannot improve the model performance for the inundated area fraction. Drainage limitation by sub-soil permeability does lead to higher soil moisture in the lower soil layers (lower bucket), especially in cold regions where plant transpiration is limited and does reduce soil moisture in deeper layers. Due to the nature of the soil water model as implemented in LPX-Bern (see Appendix \ref{app:soilwater}) higher soil moisture in the lower layers do not lead to significantly increased soil moisture in the upper layers as these cannot hold water beyond the field capacity by definition (see Equation \ref{eq:runoffsurf}). An implementation of drainage limitation in a soil model that vertically resolves water flow through soil layers more explicitly would warrant further investigation.\\
+Increased soil moisture in the lower bucket partly relieves plant water limitation in arid regions and has a considerable effect on vegetation cover and GPP (see Figure \ref{fig:vegdiff}). From a broad visual comparison of simulated vegetation cover with satellite images of the Sahel region we could not find evident support for the model accounting for drainage limitation. Given also the lack of improvement for the prediction of inundated areas, we resorted to not accounting for this additional information in the ``standard'' simulations presented in Section \ref{sec:results}.
+
+\clearpage
+
+% \subsection{Additional plots}
+% \label{app:addplots}
+ 
+% \begin{figure}[ht!]
+% %\begin{center}
+%   \includegraphics[width=\textwidth]{/alphadata01/bstocker/topmodel/fig/overview_wlf_456_maps_nodrainlimit_SA_1x1deg.pdf}
+% %\end{center}
+% \caption{Inundated area fraction (mean over all months, 1993-2004 AD) for different TOPMODEL parameters $M$ and CTI$_{\text{min}}$ (C), South America. ``prigent'' is based on remotely sensed observational data \citep{prigent07grl}.}
+% \label{fig:wlftune.map.sa}
+% \end{figure}
+
+% \begin{figure}[ht!]
+% %\begin{center}
+%   \includegraphics[width=\textwidth]{/alphadata01/bstocker/topmodel/fig/overview_wlf_456_maps_nodrainlimit_AF_1x1deg.pdf}
+% %\end{center}
+% \caption{Inundated area fraction (mean over all months, 1993-2004 AD) for different TOPMODEL parameters $M$ and CTI$_{\text{min}}$ (C), Africa. ``prigent'' is based on remotely sensed observational data \citep{prigent07grl}.}
+% \label{fig:wlftune.map.af}
+% \end{figure}
+
+% \begin{figure}[ht!]
+% %\begin{center}
+%   \includegraphics[width=\textwidth]{/alphadata01/bstocker/topmodel/fig/overview_wlf_456_maps_nodrainlimit_AS_1x1deg.pdf}
+% %\end{center}
+% \caption{Inundated area fraction (mean over all months, 1993-2004 AD) for different TOPMODEL parameters $M$ and CTI$_{\text{min}}$ (C), Asia. ``prigent'' is based on remotely sensed observational data \citep{prigent07grl}.}
+% \label{fig:wlftune.map.as}
+% \end{figure}
+
+% \begin{figure}[ht!]
+%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/wlf_456_anncycl_nodrainlimit_SA_1x1deg.pdf}
+%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/wlf_456_anncycl_nodrainlimit_AF_1x1deg.pdf}\\
+%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/wlf_456_anncycl_nodrainlimit_AS_1x1deg.pdf}
+% \caption{Mean annual cycle total inundated area, integrated over a latitudinal band. Simulated data is given for different TOPMODEL parameters $M$ and CTI$_{\text{min}}$ and can be compared to obersvational data (black line) \citep{prigent07grl}. }
+% \label{fig:wlftune.anncycl}
+% \end{figure}
+
+
+% \begin{figure}[ht!]
+% \begin{center}
+%   \includegraphics[width=0.85\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_season_50N_80N.pdf}\\
+%   \includegraphics[width=0.85\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_season_0N_20N.pdf}\\
+% \end{center}
+% \label{fig:inund}
+% \end{figure}
+
+% \begin{figure}[ht!]
+% \begin{center}
+%   \includegraphics[width=0.85\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_season_20S_0S.pdf}
+% \end{center}
+% \caption{}
+% \label{fig:inund}
+% \end{figure}
+
+% \begin{figure}[ht!]
+% \begin{center}
+%   \includegraphics[width=0.65\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_diff_drain0-nodrainlimit.pdf}
+% \end{center}
+% \caption{}
+% \label{fig:inund}
+% \end{figure}
+
+
+%% \begin{figure}[ht!]
+%% \begin{center}
+%%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/wpool_bottom_drainnolimit.pdf}
+%%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/diff_wpool_bottom_1e15-old.pdf}\\
+%%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/diff_wpool_bottom_0-old.pdf}
+%%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/diff_wpool_bottom_1e17-old.pdf}
+%% \end{center}
+%% \caption{Soil moisture index of bottom bucket as a difference to previous model version. Upper left: $\omega$ as simulated by previous model version as a reference. Upper right: difference with $\omega=1\cdot 10^{15}$. Lower left: Difference with completely suppressed drainage. Lower right: Difference with $\omega=1\cdot 10^{-17}$.}
+%% \label{fig:diff_wpool_bottom}
+%% \end{figure}
+
+% \begin{figure}[ht!]
+% \begin{center}
+%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/wpool_top_drain1e15.pdf}
+%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/wpool_top_drain0.pdf}\\
+%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/wpool_top_drain1e17.pdf}
+%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/wpool_top_drainnolimit.pdf}
+% \end{center}
+% \caption{Soil moisture index of top bucket. Upper left: New ``standard'' with drainage parameter $\omega=1\cdot 10^{15}$. Upper right: drainage completely suppressed. Lower left: $\omega=1\cdot 10^{-17}$. Lower right: Drainage is not limiting (as in previous model version).}
+% \label{fig:wpool_top}
+% \end{figure}
+
+

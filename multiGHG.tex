@@ -1,0 +1,338 @@
+\chapter{Multiple greenhouse-gas feedbacks}
+\label{sec:multiGHG}
+This chapter presents results from the study (published paper in Section \ref{sec:article.multighg}) where LPX-Bern, version 1.0 (model documentation in Appendix \ref{sec:app.lpx}) was applied to simultaneously simulate terrestrial \coo , \nno , and \chh\ emissions and albedo changes in response to climate and \coo , and a comprehensive set of anthropogenic forcings (land use change, \nr -deposition, \nr -fertiliser inputs). The study further includes results from simulations where the coupled Bern3D-LPX EMIC was applied to quantify different climate feedbacks from the terrestrial biosphere. This publication is the outcome of the collaboration in model development at our department (Climate- and Environmental Physics) and the LPX community (Colin Prentice, Xu-Ri). The model, as it was applied here, builds on the original LPJ model \citep{sitch03gcb}. It further includes a C and N cycle interaction and \nno\ emission model by \citet{xuri08gcb} adopted into LPX-Bern by myself; a land use change representation by \citet{strassmann08tel}; peatland C cycling and \chh\ emissions based on \citet{wania09gbca} and \citet{spahni11bg}, implemented by R. Spahni; a land surface albedo scheme by M. Steinacher (unpublished); and was coupled to the Bern3D ocean and atmosphere physical and biogeochemical model by R. Roth. Collaboration with co-authors outside our group (L. Bouwman, S. Zaehle) enabled us not only to benefit from their expertise but also to make use of relevant forcing data, crucial for the simulation of anthropogenic impacts on the N cycle. I had the honour to take the lead in this project and was greatly supported by R. Roth who conducted the coupled Bern3D-LPX simulations and F. Joos and C. Prentice who guided the scientific outline (see also 'Author Contributions' in the original article).\\
+
+Simulating greenhouse-gas (GHG) feedbacks and atmospheric budgets requires to include and prescribe all relevant non-land emissions, separated from terrestrial (land) emissions because the latter are also affected by climate and \coo\ and are simulated interactively by the model. Furthermore, spatially resolved data for external forcings directly acting on terrestrial ecosystems (land use change, \nr -deposition, \nr -fertiliser inputs) had to be prescribed not only for the historical period but also for the different future scenarios. The preparation of the full set of model inputs was challenging, required some assumptions to be made with respect to extrapolations following the RCPs, and is documented in Section \ref{sec:input} (in this form published in the Supplementary Information of the original article). Additional results, also published in the Supplementary Information, are provided in Section \ref{sec:addresults.multighg}.
+
+\section{Input data and model setup}
+\label{sec:input}
+Figure {\ref{fig:setup}} illustrates the model setup: which variables are prescribed to individual model components and which are simulated interactively. The naming of variables introduced here is followed throughout this chapter. Components in red represent the model parts used for the 'offline' simulations (see Methods, main article). Inputs prescribed to LPX-Bern 1.0 are N-deposition (N$_\mathrm{dep}$) \citep{lamarque11cc}, mineral N-fertilisation (N$_\mathrm{fert}$) \citep{zaehle11ngeo}, distribution of croplands, pastures and urban areas (A$_\mathrm{LU}$) \citep{hurtt06gcb}, fixed distribution of peatland areas (A$_\mathrm{peat}$) \citep{tarnocai09gbc} and seasonally inundated wetlands (A$_\mathrm{inund}$) \citep{prigent07grl}. In offline mode, monthly temperature, precipitation and cloud cover are prescribed from the CMIP5 outputs (temp$^\mathrm{CMIP5}$, prec$^\mathrm{CMIP5}$, ccov$^\mathrm{CMIP5}$, see also Tab.\ref{tab:modls}). In online mode, a spatial pattern per unit temerature change (temp$^\mathrm{ANOM}$, prec$^\mathrm{ANOM}$, ccov$^\mathrm{ANOM}$, derived for each CMIP5 model used, is scaled by the global mean temperature change simulated online by Bern3D ($\Delta T$), see Section \ref{sec:climate}). Simulated terrestrial emissions (e\coo$^\mathrm{LPX}$, e\nno$^\mathrm{LPX}$, e\chh$^\mathrm{LPX}$) are complemented with other sources not simulated by LPX (e\coo$^\mathrm{EXT}$, e\nno$^\mathrm{EXT}$, e\chh$^\mathrm{EXT}$) and an additional flux to close the atmospheric budget in 1900 AD (e\nno$^\mathrm{ADD}$, e\chh$^\mathrm{ADD}$). Atmospheric concentrations (c\coo , c\nno , c\chh , cO$_3^{\mathrm{tropos}}$, rOH) are calculated online in Bern3D using a simplified atmospheric chemistry model (ATMOS. CHEM., \citet{joos01gbc,strassmann09cd}) to simulate variations in the life time of \chh\ and using prescribed emissions of reactive gases from the RCP database (eVOC$^\mathrm{RCP}$, eNOX$^\mathrm{RCP}$, eCO$^\mathrm{RCP}$). c\coo\ evolves as a result of the coupled oceanic and terrestrial C cycle and is communicated back to LPX where it affects plant photosynthesis. The radiative forcing of all agents affected by variations of terrestrial GHG emissions (f\coo , f\nno , f\chh , fO$_3^{\mathrm{tropos}}$, fH$_2$O$^{\mathrm{stratos}}$) are simulated online in Bern3D after \citet{joos01gbc} (Bern3D RADIATIVE FORCING). Radiative forcing from other agents (fAerosol, fCFCs, fHFCs) are prescribed directly from the RCP database. The global mean temperature increase ($\Delta T$) is calculated by Bern3D using a two-dimensional representation of the Earth energy balance \citep{ritz2011a} and a three-dimensional physical ocean model \citep{mueller06}. The top arrow represents the communication of land albedo changes ($\Delta\alpha$) from LPX to the radiative component of Bern3D. The bottom arrow visualizes the feedback from simulated c\coo\ and $\Delta T$ on LPX. Land surface albedo changes in response to vegetation changes and snow cover are simulated based on \citet{otto11cp} and are described in \citet{steinacher11diss}.
+
+\begin{figure}[h!]
+  \begin{center}
+    \noindent\includegraphics[width=16cm]{/alphadata01/bstocker/multiGHG_analysis/fig/setup_multiGHG_20120716.pdf}
+  \end{center}
+  \caption[Model setup: Inputs and model components]{Model setup: Inputs and model components.}
+  \label{fig:setup}
+\end{figure}
+
+
+%\clearpage
+
+\subsection{Climate}
+\label{sec:climate}
+In offline mode, monthly climate data is prescribed to LPX. CMIP5 climate output for surface temperature, precipitiation, and cloud cover is applied for all RCP2.6 and RCP8.5 experiments as given in Table \ref{tab:modls}. To correct CMIP5 model output for bias w.r.t. the present-day CRU climatology \citep{mitchelljones05clim}, climate fields are anomalized as follows:
+\begin{equation}
+\mathrm{CMIP5}^\ast_{x,y,t}=\mathrm{CMIP5}_{x,y,t}-\overline{\mathrm{CMIP5}_{x,y}}+\overline{\mathrm{CRU}_{x,y}} \;,
+\end{equation}
+where $\mathrm{CMIP5}_{x,y,t}$ is the original and $\mathrm{CMIP5}^\ast_{x,y,t}$ is the offset-corrected CMIP5 climate variable field (surface temperature, precipitation, cloud cover) defined for t = 2005-2100 (2300) AD. Bars denote the mean over the years 1996-2005 AD.\\
+
+In online mode, a spatial pattern per unit temerature change, derived for each CMIP5 model and each month is scaled by the global mean temperature change ($\Delta T$) simulated online by Bern3D. Temperature and precipitation anomaly patterns are illustrated in Figures \ref{fig:tas_anom} and \ref{fig:pr_anom}.
+
+\begin{table*}[ht!]\footnotesize
+\caption[CMIP5 ensemble simulations used for offline simulations]{CMIP5 ensemble simulations used for offline simulations. 'r1' refers to the CMIP5 terminology ('r1i1p1'), 'r2' to 'r2i1p1', etc. These are different simulation ensemble members of CMIP5 experiments with equal forcings but slightly different initial conditions.}
+\sffamily
+\label{tab:modls}
+%\vskip1mm
+\centering
+\begin{tabular}{llll}
+\tophline
+\textbf{model} & \textbf{RCP2.6}& \textbf{RCP8.5}  & \textbf{Modeling Center}\\
+\middlehline
+HadGEM2-ES     & r1, r2, r3, r4 & r1, r2, r3, r4      & Met Office Hadley Centre \\
+MPI-ESM-LR     & r1, r2, r3 & r1, r2, r3  & \specialcell[t]{Max-Planck Institute\\ for Meteorology}\\
+IPSL-CM5A-LR   & r1, r2, r3 & r1, r2, r3, r4   & Institut Pierre-Simon Laplace\\
+MIROC-ESM     &  r1  & r1  & \specialcell[t]{Japan Agency for Marine-Earth\\ Science and Technology} \\
+CCSM4         & r1, r2, r3, r4, r5 & r1, r2, r3, r4, r5 & \specialcell[t]{National Center for\\ Atmospheric Research}\\
+\bottomhline
+\end{tabular}
+\end{table*}
+
+\begin{figure}[ht!]
+\noindent\includegraphics[width=16cm]{/alphadata01/bstocker/multiGHG_analysis/fig/tas_anom_small.pdf}
+\caption[Annual mean temperature anomaly patterns]{Annual mean temperature anomaly patterns per \degC\ global temperature change used for coupled simulations [$^\circ$C/(global mean $^\circ$C)]. Note that values above 1 represent locations where regional temperature change is larger than on global average.}
+\label{fig:tas_anom}
+\end{figure}
+
+\begin{figure}[ht!]
+\noindent\includegraphics[width=16cm]{/alphadata01/bstocker/multiGHG_analysis/fig/pr_anom_small.pdf}
+\caption[Annual mean precipitation anomaly patterns]{Annual mean precipitation anomaly patterns per degree global temperature change used for coupled simulations [mm/month/(global mean $^\circ$C)].}
+\label{fig:pr_anom}
+\end{figure}
+
+%\clearpage
+
+\subsection{N fertiliser input}
+\label{sec:nfert}
+Mineral N fertilizer (N$_{\mathrm{fert}}$) is assumed to be added to croplands only. N$_{\mathrm{fert}}$ inputs on pastures, as well as N inputs from manure are not simulated explicitly. Tracking C and N mass flow from harvest on agricultural land to soil application of animal manure and recycling of crop residues, with denitrification, volatilisation, and \nno\ emissions along the pathway, is beyond the the scope of the present study. N$_2$O emissions from manure are prescribed instead (see Section below).\\
+
+Four equal doses of mineral N-fertiliser are added during the vegetation period to the soil nitrate and ammonium pool with a constant respective split of 1:7. For the historical period (1765-2005 AD), N$_{\mathrm{fert}}$ data is from \citet{zaehle11ngeo} (ZAE11), based on country-wise ammonium plus nitrate data from the FAO statistical database (1960-2005) \citep{fao}. For years 1910-1960, an exponential increase was assumed.\\
+
+For the years 2005-2100 AD, spatial N$_{\mathrm{fert}}$ data provided by the the IAM groups (RCP8.5: \citet{riahi11cc}, pers. comm. K. Riahi, January 2012; RCP2.6: \citet{vanvuuren11cc, bouwman09gbc}, pers. comm. L. Bouwman, April 2012) is used to scale the 2005 AD-field from ZAE11 for each continent separately. Thereby, the relative increase in the total amount of annual N$_{\mathrm{fert}}$ inputs in each continent is conserved from the original data delivered by the IAM groups, while the spatial pattern within each continent is conserved from the data of ZAE11 in year 2005 AD (see Figures \ref{fig:nfert_global}, \ref{fig:nfertmaps}). This scaling can be described by
+\begin{equation}
+N^{\mathrm{RCP}}_{t,i} = N^{\mathrm{ZAE11}}_{2005,i} \,  \frac{\sum\limits_{i\in k} N^{\mathrm{RCP-orig}}_{t,i} }{\sum\limits_{i\in k} N^{\mathrm{RCP-orig}}_{2005,i} } \, ,
+\end{equation}
+where $N^{\mathrm{RCP}}_{t,i}$ is the harmonized RCP N$_{\mathrm{fert}}$ scenario, $N^{\mathrm{ZAE11}}_{2005,i}$ is the spatialised (index $i$) field of ZAE11 in year 2005 AD. $N^{\mathrm{RCP-orig}}_{t,i}$ is the original spatialised RCP scenario data for each time $t$ and grid cell $i$. The sum over all grid cells $i$ belonging to continent $k$ is used to scale $N^{\mathrm{ZAE11}}_{2005,i}$. For RCP8.5, the scaling factor is corrected to guarantee that the total N$_{\mathrm{fert}}$ input in 2100 and in each continent is identical as in the original data.
+\begin{figure}[ht!]
+\begin{center}
+\noindent\includegraphics[width=0.45\textwidth,angle=0]{/alphadata01/bstocker/multiGHG_analysis/fig/nfert.pdf}
+\noindent\includegraphics[width=0.45\textwidth,angle=0]{/alphadata01/bstocker/multiGHG_analysis/fig/ndep.pdf}\\
+\noindent\includegraphics[width=0.45\textwidth,angle=0]{/alphadata01/bstocker/multiGHG_analysis/fig/co2_rcp.pdf}
+\noindent\includegraphics[width=0.45\textwidth,angle=0]{/alphadata01/bstocker/multiGHG_analysis/fig/landuse.pdf}
+\end{center}
+\caption[Time series of external forcings]{{\it top left:} Global mineral nitrogen fertilizer input (N$_{\mathrm{fert}}$) [TgN/yr] for the historical period (black), RCP2.6 (blue) and RCP8.5 (red). {\it top right:} Global atmospheric N deposition from \citet{lamarque11cc} [TgN/yr] for the historical period (black), RCP2.6 (blue) and RCP8.5 (red). {\it bottom left:} Atmospheric \coo\ concentration as prescribed in offline simulations for the historical period (black), RCP2.6 (blue) and RCP8.5 (red). {\it bottom right:} Global land use area from \citet{hurtt06gcb} [TgN/yr] for the historical period (black), RCP2.6 (blue) and RCP8.5 (red).}
+\label{fig:nfert_global}
+\end{figure}
+%
+\begin{figure}[ht!]
+\begin{center}
+\noindent\includegraphics[width=16cm]{/alphadata01/bstocker/multiGHG_analysis/fig/Nfert_map_small.pdf}
+\end{center}
+\caption[N fertiliser application maps]{N$_{\mathrm{fert}}$ input [gN m$^{-2}$ yr$^{-1}$], RCP2.6. ({\sl Left}) and RCP8.5 ({\sl Right}), for years 2005, 2030, 2050 and 2100 (top to bottom). Fertiliser is applied to croplands. These are defined by \citet{hurtt06gcb}.}
+\label{fig:nfertmaps}
+\end{figure}
+
+\subsection{N deposition}
+\label{sec:nfert}
+Annual fields for atmospheric NHx and NOy deposition are from \citet{lamarque11cc}, generated by an atmospheric chemistry/transport model and provided for the historical period as well as for RCP scenarios of the 21st century. NHx and NOy are added to the ammonium and nitrate pool in LPX along with daily precipitation. For the present study, we treat N deposition as an external forcing, meaning that it is not affected by climate or \coo . The assessment of a feedback between climate and \coo , emissions of NO, NO$_2$ and NH$_3$ from soils, atmospheric transport and chemical reactions, deposition and radiative forcing is beyond the present study. We summarize the sum of N deposited and N$_{\mathrm{fert}}$ as ``reactive N inputs'' (Nr).
+
+
+\subsection{Land use change}
+\label{sec:landuse}
+Anthropogenic land use change (LU) is treated as an external forcing (see Figure 1 in the main text) and is prescribed also in the 'ctrl' online and offline simulations. LU is prescribed as maps for each year from \citet{hurtt06gcb}. Resulting \coo\ emissions from deforestation are simulted by the model. A thorough description can be found in previous publications \citep{strassmann08tel,stocker11bg}. Note that LU also has indirect effects by changing the C sink capacity under rising c\coo  \citep{strassmann08tel}. This is reflected in a stronger negative feedback factor $r^{\mathrm{C}}_{\Delta\mathrm{C}}$ (Figure \ref{fig:feedbacks.supp}) when the model is set up without accounting for LU (simulation DyNrPt, Table \ref{tab:simsfeatures}). 
+
+
+\subsection{\nno\ and \chh\ emissions not simulated by LPX}
+\label{sec:eghgext}
+
+For e\nno$^{\mathrm{EXT}}$ we use historical emission data for domestic/industrial sources, fire, and manure as described in \citet{zaehle11ngeo} (Figure \ref{fig:eN2Oext}). Domestic/industrial emissions were derived from \citet{vanaardenne01gbc} giving a flux of 1.2 Tg\nno -N/yr in 2005 AD. The biomass burning estimate (0.5 Tg\nno -N/yr in 2005 AD) is from \citet{davidson09natgeo}. Manure-\nno\ flux is taken as a fraction of global manure-N input yielding 2.2 Tg\nno -N/yr in 2005 AD. To extend \nno\ emissions to 2100 AD, we scale the total of domestic/industrial plus fire plus manure emissions in year 2005 AD with the relative increase in the sum of respective categories in each RCP scenario. RCP emission data are consistent with the economical, demographic, and political development in the respective RCP scenarios as simulated by Integrated Assessment Modeling.\\
+
+To complete the \nno\ budget and reproduce the atmospheric concentration for pre-industrial conditions, we tuned the oceanic source to 3.3 Tg\nno -N/yr (e\nno $^\mathrm{ADD}$ in Figure \ref{fig:setup}). This is in agreement with the broad range of available estimates (1.2-5.8 Tg\nno -N/yr) \citep{hirsch06gbc, denman07ipcc, rhee09jgr}. The oceanic source is scaled by 3.3$\%$ between 1850 and 2005 AD with the scaling factor following the increase in atmospheric N deposition. This increase reflects the increase in reactive N in oceans due to atmospheric deposition \citep{sunth12grl}. After 2005 AD, the oceanic source is held constant in all scenarios.\\
+
+Non-soil \chh\ emissions are taken from \citet{RCPdatabase}. These include emissions from biomass burning and wet rice cultivation which are not explicitly simulated by LPX. To close the atmospheric \chh\ budget and reproduce the atmospheric concentration in 1900 AD, we tuned the additional prescribed source (representing geological and small oceanic sources) to 38 Tg\chh /yr (e\chh $^\mathrm{ADD}$ in Figure \ref{fig:setup}). This is based on a data spline of southern-hemisphere atmospheric records as provided by \citet{RCPdatabase}.
+
+\begin{figure}[ht!]
+\begin{center}
+\noindent\includegraphics[width=\textwidth,angle=0]{/alphadata01/bstocker/multiGHG_analysis/fig/eN2Oext.pdf}
+\end{center}
+\caption[Prescribed external \nno\ emissions]{{\it Left:} \nno\ emissions not explicitly simulated by LPX (e\nno $^{\mathrm{EXT}}$) and oceanic emissions (green). The black line ('Zaehle et al., 2011') is the sum of domestic/industrial, fire, plus manure as given in right plot. {\it Right:} e\nno $^{\mathrm{EXT}}$ by sources. Both are given in Tg\nno -N/yr.}
+\label{fig:eN2Oext}
+\end{figure}
+
+
+% \section{Introduction}
+
+% \section{Model documentation}
+% % This section serves as a brief documentation of the implementation of DyN-LPJ in LPX-Bern, version 1.0. I will describe the most important equations from Xu-Ri \& Prentice, 2008, and what we adjusted in LPX-Bern to make it compatible with DyN. Then, I will illustrate some of the chages this implies to the simulated vegetation, soil carbon, NPP distribution.\\
+% % Unsure about whether to put all model documentations into the Appendix???
+
+% \subsection{The DyN-LPJ model}
+
+% \subsection{LPX-Bern, Version 1.0}
+% \label{sec:lpxbernv1}
+% DyN-LPJ  \citepp{xuri08gcb} has been implemented in the Bern version of LPJ. The coupling of carbon (C) and nitrogen (N) dynamics considerably affects simulated variables and their response to environmental change. Thus, it appeared timely to re-name the model to LPX-Bern, Version 1.0. The most substantial parameter choices and model adjustments made, that go beyond the mere implementation of the equations presented in  \citept{xuri08gcb}, are documented in Appendix \ref{sec:app.lpx}. 
+
+% \begin{figure}[ht!]
+% \begin{center}
+%   \includegraphics[width=\textwidth]{../fig/DyN_schematic.pdf}
+% \end{center}
+% \caption{Schematic illustration of simulated mass and information flow in the DyN model.}
+% \label{fig:dyn}
+% \end{figure}
+
+% LPX-Bern, Version 1.0, simulates N cycle dynamics as adopted from the DyN-LPJ model  \citepp{xuri08gcb}. A schematic illustration of the model's C and N pools and fluxes is provided in Figure \ref{fig:dyn}. The LPX implementation of DyN-LPJ is extended to include model inputs for atmospheric N deposition and mineral N fertilisers on croplands. Further, the implementation of nitrogen pools and fluxes extended to be compatible with the the land use change and peatland schemes as implemented in earlier versions of LPJ (LPJ 2.0 - 3.2). LPX-Bern, Version 1.0 (thereafter referred to as LPX) thus refers to the model version including the multi-layer soil hydrology and heat transfer scheme of  \citept{wania09gbca, spahni11bg}, the land use change scheme of  \citept{strassmann08tel} and the scheme for carbon dynamics on peatlands  \citepp{wania09gbca}. This model version has been applied in  \citept{stocker13natcc},  \citept{spahni13cp}, and  \citept{lequere13essd}.
+
+
+\section{Article}
+\section*{Multiple greenhouse-gas feedbacks from the land biosphere under future climate change scenarios}
+\label{sec:article.multighg}
+
+{Benjamin D. Stocker\footnotemark[1]\footnotemark[2], Raphael Roth\footnotemark[1]\footnotemark[2], Fortunat Joos\footnotemark[1]\footnotemark[2], Renato Spahni\footnotemark[1]\footnotemark[2], Marco Steinacher\footnotemark[1]\footnotemark[2], Soenke Zaehle\footnotemark[3], Lex Bouwman\footnotemark[4]\footnotemark[5], Xu-Ri\footnotemark[6], Iain Colin Prentice\footnotemark[7]\footnotemark[8]}
+\bigskip\\
+\noindent
+{Published in \emph{Nature Climate Change}, Vol. 3, pp. 666-672, 2013}
+
+\footnotetext[1]{Climate and Environmental Physics, Physics Institute, University of Bern, Switzerland}
+\footnotetext[2]{Oeschger Centre for Climate Change Research, University of Bern, Switzerland}
+\footnotetext[3]{ Max Planck Institute for Biogeochemistry, Department for Biogeochemical Systems, 07745 Jena, Germany}
+\footnotetext[4]{Department of Earth Sciences, Geochemistry, Faculty of Geosciences, Utrecht University}
+\footnotetext[5]{PBL Netherlands Environmental Assessment Agency, P.O. Box 303, 3720 AH Bilthoven, The Netherlands}
+\footnotetext[6]{ Laboratory of Tibetan Environment Changes and Land Surface Processes, Institute of Tibetan Plateau Research, Chinese Academy of Sciences, Beijing 100101, China}
+\footnotetext[7]{Department of Biological Sciences, Macquarie University, North Ryde, NSW 2109, Australia}
+\footnotetext[8]{Grantham Institute for Climate Change and Division of Ecology and Evolution, Imperial College, Silwood Park, Ascot SL5 7PY, UK}
+
+
+\setcounter{ct}{1} \forLoop{1}{7}{ct} {
+\begin{figure}
+\begin{center}
+\includegraphics[width=1.00\textwidth, clip]{../papers/stocker13natcc/stocker13natcc_ghg_feedbacks_cropped_\arabic{ct}}
+\end{center}
+\end{figure}
+\clearpage }
+
+
+\section{Supplementary results}
+\label{sec:addresults.multighg}
+In the following sections I provide an additional documentation of the results from simulations presented in \citet{stocker13natcc} (Section \ref{sec:article.multighg}). Maps for changes in \nno\ (Figure \ref{fig:mapN2O}) and \chh\ (Figure \ref{fig:deCH4}) emissions and terrrestrial C storage (Figures \ref{fig:dC_CT} and \ref{fig:dC_ctrl}) provide spatial information, given separately for each CMIP5 model's climate input (mean over available ensemble members). Results presented in the article (Section \ref{sec:article.multighg}) focused on separating feedbacks from different forcing agents ($\Delta$C, \nno , \chh , albedo). Additional simulations were conducted where effects of different features (land use, C-N interactions, \nr\ inputs, and peatland dynamics) were investigated (see Table \ref{tab:simsfeatures}) and their effect on carbon cycle sensitivities (see Figure \ref{fig:betagamma}) and the total land feedback was quantified (see Figure \ref{fig:feedbacks.supp}).
+
+\begin{table*}[ht!]\footnotesize
+\caption[Features overview]{Features overview. Model features, variably turned on (\cmark) and off (\xmark) are: anthropogenic land use change (LU), interactive carbon-nitrogen cycling (DyN), N-deposition (N$_{\mathrm{dep}}$), N-fertilisation (N$_{\mathrm{fert}}$), and C-N dynamics/CH$_4$ emissions on peatlands (peat). For the model setup with DyN turned off, the carbon-only version of LPX was used.}
+\sffamily
+\label{tab:simsfeatures}
+\centering
+\begin{tabular}{llllll}
+\tophline
+name        	&LU	&DyN	&N$_{\mathrm{dep}}$	&N$_{\mathrm{fert}}$	&peat	\\
+\middlehline
+LuDyNrPt	&\cmark	&\cmark	&\cmark	&\cmark	&\cmark	\\
+LuDyNr 	        &\cmark	&\cmark	&\cmark	&\cmark	&\xmark	\\
+LuDyNPt	        &\cmark	&\cmark	&\xmark	&\xmark	&\cmark	 \\
+LuPt	        &\cmark	&\xmark	&\xmark	&\xmark	&\cmark	 \\
+DyNrPt	        &\xmark	&\cmark	&\cmark	&\cmark	&\cmark	 \\
+\bottomhline
+\end{tabular}
+\end{table*}
+
+\subsection{Terrestrial C balance}
+\label{sec:dC}
+Changes in terrestrial C storage ($\Delta$C) as illustrated in Figure \ref{fig:dC_CT} are the result of external forcings (land use change, Nr) and the impact of changes in climate and c\coo . Figure \ref{fig:dC_ctrl} shows separated effects of external forcings only (top left) and changes in climate and c\coo\ as the difference to the total effect ('CT-ctrl'). At high northern latitudes, temperature increase acts to relieve the limitation of plant growth by temperature and low nutrient availability and leads increased C storage, while at lower latitudes, warmer temperatures generally reduce soil C storage by enhancing soil C decomposition. The C balance of forest biomes (boreal and tropical) is sensibly affected by vegetation dynamics responding to water stress, exceedance of bioclimatic limits, etc. and exhibits abrupt transitions (collapse of vegetation) leading to a sharp decline in primary productivity and C storage.
+\begin{figure}[ht!]
+  \includegraphics[width=\textwidth]{/alphadata01/bstocker/multiGHG_analysis/fig/map_dC_r1_small.pdf}
+\caption[Maps of future C storage change for different climate change patterns (RCP 8.5)]{$\Delta$C$_{\mathrm{tot}}$, change in total (vegetation, litter, soil) terrestrial C storage [gC/m$^2$], 2100-2000 AD, in RCP8.5, from offline simulation 'CT', and based on different CMIP5 climates. Differences are taken from the means of the years 2006 to 2011 AD and 2095 to 2100 AD. Brown colors represent C release from the terrestrial biosphere.}
+\label{fig:dC_CT}
+\end{figure}
+
+\begin{figure}[ht!]
+  \includegraphics[width=\textwidth]{/alphadata01/bstocker/multiGHG_analysis/fig/map_dC_ctrl_small.pdf}
+\caption[Maps of future C storage change, separated by effects from land use change and effects from different climate change patterns (RCP8.5)]{$\Delta$C$_{\mathrm{tot}}$, change in total (vegetation, litter, soil) terrestrial C storage [gC/m$^2$], 2100-2000 AD, in RCP8.5 and based on different CMIP5 climates. {\it upper left: } from offline simulation 'ctrl' where the land model ``sees'' no changes in climate or \coo\ and is affected only by external forcings (land use, N-deposition, N-fertiliser). {\it rest: } difference between 'CT' and 'ctrl' simulation; represents effects due to changes in climate and \coo . Differences are taken from the means of the years 2006 to 2011 AD and 2095 to 2100 AD. Brown colors represent C release from the terrestrial biosphere.}
+\label{fig:dC_ctrl}
+\end{figure}
+
+
+\subsection{\nno\ emissions}
+\label{sec:eN2O}
+Simulated present-day \nno\ emissions from terrestrial ecosystems of 9.1 Tg\nno -N/yr are within the range of other studies \citep{denman07ipcc, hirsch06gbc, sykalia11ggmm, zaehle11ngeo, xuri12nphyt}. The spatial pattern of the \nno\ increase in the 21st century is similar for all prescribed CMIP5 climates (Figure \ref{fig:mapN2O}). CCSM4 shows the smallest increase across different regions. Most of the increase in \nno\ emissions is from agricultural land (cropland and pastures, Figure \ref{fig:eN2Oagrnat}). The amplification of the \nno\ source from agricultural soils (from 1.4 in 1900 AD to 4.9 TgN$_2$O-N/yr in 2005 AD) is a combination of expansion of areas under anthropogenic land use and an increase in fertiliser-N inputs and N-deposition per unit area. Due to the continuous increase of Nr inputs in RCP8.5 throughout the 21st century, \nno\ emissions from agricultural soils reach 9-11 TgN$_2$O-N/yr by 2100 AD.\\
+
+Interestingly, the relative increase in agricultural \nno\ emissions is larger than the relative increase in anthropogenic Nr inputs to agricultural land. We define here a dimensionless \nno\ emission factor as the ratio of \nno\ emissions from agricultural land divided by anthropogenic Nr inputs on agricultural land (N-fertilisation plus N-deposition). Thus the values of the emission factor quantified here cannot be compared directly to results of \citet{davidson09natgeo} and \citet{crutzen08atmchemphys}. Note, that other inputs of fixed N which did not see a magnitude in the relative increase as for N-deposition and fertiliser-N (biological N fixation or manure), are not accounted for here. The temporal evolution of this emission factor for simulations with climate change (r1, red) and a simulation without climate change (r5, red) is illustrated by Figure \ref{fig:emissionfactor}. Two important features of this evolution emerge: (i) A drop of the emission factor from 0.24 to 0.04 from pre-industrial times to present. This is due to the drastic increase in anthropogenic Nr inputs. Nr inputs on agricultural land (N-deposition plus N-fertiliser) increase from 3 TgN/yr in 1850 AD to 131 at present and to 239 TgN/yr in 2100 AD in RCP8.5. Its relative increase is much stronger than the relative increase in \nno\ emissions. (ii) The divergence of emission factors in the 21th century for the RCP8.5 scenario, as climate change is responsible for an increase in the share of reactive N input lost as \nno .
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=\textwidth]{/alphadata01/bstocker/multiGHG_analysis/fig/map_n2o_r1_small.pdf}
+\end{center}
+\caption[Maps of future \nno\ emission change for different climate change patterns (RCP8.5)]{$\Delta$e\nno [gN$_2$O-N/m$^2$/yr], 2100-2000 AD, in RCP8.5, from offline simulation 'CT', and based on different CMIP5 climates. Differences are taken from the means of the years 2006 to 2011 AD and 2095 to 2100 AD.}
+\label{fig:mapN2O}
+\end{figure}
+
+\begin{figure}[ht!]
+\begin{center}
+\includegraphics[width=0.45\textwidth,angle=0,clip=true]{/alphadata01/bstocker/multiGHG_analysis/fig/eN2O_nat.pdf}
+\includegraphics[width=0.45\textwidth,angle=0,clip=true]{/alphadata01/bstocker/multiGHG_analysis/fig/eN2O_agr.pdf}
+\end{center}
+\caption[Global total \nno\ emissions on natural and agricultural land.]{Global total \nno\ emissions on natural ({\sl left}) and agricultural ({\sl right}) land.}
+\label{fig:eN2Oagrnat}
+\end{figure}
+
+\begin{figure}[ht!]
+\begin{center}
+\includegraphics[width=0.45\textwidth,clip=true,angle=0]{/alphadata01/bstocker/multiGHG_analysis/fig/emissionfactor.pdf}
+\end{center}
+\caption[Future \nno\ emission factor over time (RCP8.5)]{\nno\ emission factor. Defined as the ratio of \nno\ emissions from agricultural land divided by Nr inputs on agricultural land. For a simulation with climate change (r1, black) and a simulation without climate change and c\coo\ changes (r7, red). RCP8.5 climates change from all CMIP5 models is prescribed for the 21st century.}
+\label{fig:emissionfactor}
+\end{figure}
+
+\subsection{\chh\ emissions}
+\label{sec:eCH4}
+Modelled \chh\ emissions from natural ecosystems increase from 195 at preindustrial to 219 Tg\chh /yr at present and further to 228-241 in RCP2.6 and 304-343 Tg\chh /yr in RCP8.5 (Figure 2b). Increased substrate availability for methanogenesis due to a strong stimulation of NPP, and faster soil turnover leads to an amplification of \chh\ emissions with the sharpest increase in peatlands (plus 120-200\%). Other \chh -related analyses with the same model are presented in \citet{spahni11bg} and \citet{zuercher12bgd}. Changes in tropical inundated wetland emissions are less pronounced, and perhaps underestimated in our model that does not account for wetland expansion under future climate change \citep{shindell04grl,melton12bgd}. The additional \chh\ release from natural land ecosystems is not accounted for in the climate projections in preparation of the Fifth Assessment Report of the Intergovernmental Panel on Climate Change \cite{RCPdatabase, CMIP5}. In our simulations c\chh\ rises up to 4500 ppb in RCP8.5 by 2100 AD (see online simulation, below), about 800 ppb more than in the RCP data.
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=\textwidth]{/alphadata01/bstocker/multiGHG_analysis/fig/map_ch4_r1_small.pdf}
+\end{center}
+\caption[Maps of future \chh\ emission change for different climate change patterns (RCP8.5)]{$\Delta$e\chh$^{\mathrm{LPX}}$ [g\chh/m$^2$/yr], 2100-2000 AD, in RCP8.5, from offline simulation 'CT', and based on different CMIP5 climates. Based on different CMIP5 climates. Differences are taken from the means of the years 2006 to 2011 AD and 2095 to 2100 AD.}
+\label{fig:deCH4}
+\end{figure}
+\clearpage
+
+\subsection{Albedo}
+\label{sec:alb}
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=\textwidth]{/alphadata01/bstocker/multiGHG_analysis/fig/map_albedo_small.pdf}
+\end{center}
+\caption[Maps of future albedo change, separated by effects from land use change, climate, and \coo\ (RCP8.5)]{$\Delta$albedo, 2100-2000 AD, in RCP8.5. Combined effect of climate and c\coo\ (upper left) , effect of climate only (upper right), effect of c\coo\ (lower left); on natural land only (no land use). Map in lower right illustrates effect of external forcings (land use, Nr) for RCP8.5. Differences are taken from the means of the years 2000 to 2010 AD and 2090 to 2100 AD. Negative values (red, decreasing albedo) imply more absorbtion of shortwav radiation at the surface, which leads to warming.}
+\label{fig:albedo}
+\end{figure}
+
+\subsection{Equilibrium climate sensitivity}
+\label{sec:equil}
+Climate sensitivity is conventionally defined as the temperature response to a doubling of c\coo , thus not involving slowly adjusting biogeochemical feedbacks \citep{knuttihegerl08ngeo}. Here, we assess climate sensitivity to a sustained radiative forcing of 3.7 Wm$^{-2}$ , corresponding to a nominal doubling of preindustrial \coo\ levels. Note that the climate sensitivity is inversely proportional to the sum of all feedbacks $1/(\lambda_0+\lambda_{\mathrm{land}})$. Bern3D is tuned to yield a conventionally defined sensitivity of $\sim$2.9\degC . We assess results  for {\it (i)} a simulation with interactive land biosphere and all feedbacks operating (setup like 'CT-LuDyNrPt') {\it (ii)}  a simulation with interactive land biosphere where only feedbacks from albedo and terrestrial C storage are operating (setup like 'CT-$\Delta$\coo-$\Delta \alpha$') and {\it (iii)} a simulation without land-climate interactions (simulation setup like 'ctrl-LuDyNrPt', Tab.\ref{tab:simscouplings}, see Figure \ref{fig:equil}). The coupled Bern3D-LPX model is run for 2000 simulation years. All boundary conditions (Nr inputs, land use, initial atmospheric \coo, initial climatology) are set to preindustrial values. We chose to compare the fully coupled simulation 'CT-LuDyNrPt' with 'CT-$\Delta$\coo-$\Delta \alpha$ because the latter represents a setup commonly represented by latest-generation Earth system models (e.g., CMIP5 models).\\
+
+In our simulations, feedbacks from terrestrial C storage and albedo amplify the equilibrium temperature increase by 0.4-0.5\degC , while the combination of all simulated land-climate interactions finally results in 3.4-3.5\degC\ warming, 0.6-0.7\degC\ (or 22-27\%) above the 2.8\degC\ warming when only non-land climate feedbacks are operating (see Figure \ref{fig:equil}).\\
+
+Values for $\lambda_{\mathrm{land}}$ reported here are somewhat higher than derived from the RCP 8.5 simulations as presented in the article. Differences are partly linked to total C in the system. In RCP 8.5 fossil fuel combustion adds C and stimulates C storage on land, acting as a negative feedback. Another reason for differences is the time scale of the simulation in relation to the atmosphric GHG lifetimes and \coo\ redistribution. Applying present-day boundary conditions would enhance the positive feedback from \nno\ due to higher Nr loads in soils. Assumptions regarding the state of land use used for the equilibrium assessment further influence results. This scenario-dependence of any feedback quantification may be interpreted as favouring the use of scenarios with consistent future developments in land use and emissions of GHGs and other forcing agents.
+
+\begin{figure}[ht!]
+\begin{center}
+\includegraphics[width=0.75\textwidth]{/alphadata01/bstocker/multiGHG_analysis/fig/equil.pdf}
+\end{center}
+\caption[Time series for temperature and feedback factors in an equilibrium climate sensitivity experiment]{{\sl Upper panel:} Global mean temperature increase in response to a radiative forcing of 3.7 Wm$^{-2}$ . The black curve represents the 'ctrl' simulation, where no feedbacks from land are accounted for. The dotted black curve represents the temperature change in response to a doubling of atmospheric c\coo , the ``conventionally defined'' climate sensitivity as referred to in the main article. The blue range represents a setup where only terrestrial feedbacks from \dc\ and albedo are accounted for. The red range represents a setup where also e\nno\ and e\chh\ are operating (see also Table \ref{tab:simscouplings}). The difference between the red and blue range is due to effects from terrestrial e\nno\ and e\chh . The range of temperature response arises from the sensitivity to different climate change patterns. Abrupt temperature changes (e.g., 'ctrl' in simulation year 1100) are due to abrupt transitions in ocean convection and associated temperature mixing. {\sl Lower panel:} Total land-climate feedback factor ($\lambda_{\mathrm{land}}$) with colors representing the same setups as in the upper panel. All external forcings of the land (land use, Nr) and initial state (c\coo ) are preindustrial conditions.}
+\label{fig:equil}
+\end{figure}
+
+\clearpage
+
+\subsection{Carbon cycle sensitivities}
+\label{sec:sensitivities}
+As pointed out in Section \ref{sec:sensitivities}, the feedback factors $r_{\Delta\mathrm{C}}^{\mathrm{C}}$ and $r_{\Delta\mathrm{C}}^{\mathrm{T}}$ are directly linked to the {\it sensitivities} of C stocks to temperature ($\gamma$) and atmospheric c\coo\ ($\beta$) and linear relationships can be established as an approximation \cite{gregory09jclim}.\\
+
+We quantified $\beta$ and $\gamma$ from simulations where different features were included and excluded in the model. Investigated features are anthropogenic land use change (LU), interactive carbon-nitrogen cycling (DyN), N-deposition (N$_{\mathrm{dep}}$), N-fertilisation (N$_{\mathrm{fert}}$), and C-N dynamics/CH$_4$ emissions on peatlands (peat, see Table \ref{tab:simsfeatures}). Both sensitivities exhibit non-linearity pointing to a stronger positive feedback from land under high c\coo\ and temperatures (see Figure \ref{fig:betagamma}). The sensitivity to c\coo\ ($\beta$) is flatening out towards high c\coo\ levels, while the sensitivity to temperature ($\gamma$) is increasing with the magnitude of warming. In our simulations, the single most important model feature reducing $\beta$ is anthropogenic land use change. The replacement of natural vegetation by agricultural land reduces the the ecosystem's sink capacity due to shorter life time of C in grass and crop vegetation as opposed to forests. At the same time, land use change implies a reduction of $\gamma$ due to generally smaller C stocks prone to temperature-driven reduction. To derive the net effect of land use change in a scenario for future temperature and c\coo\ change, one has to turn to the feedback factor (see Figure \ref{fig:feedbacks.supp}).\\
+
+For changes in c\coo\ of less than 200 ppm, C-N interaction is the most important feature reducing $\beta$. This is likely a transient effect of initial N limitation, relieved by higher N remineralization after the system has adopted to high c\coo\ levels and increased the size of total soil organic N. Accounting for C-N interactions reduces the value of $\gamma$ due to higher N availability at warmer soil temperatures. Nr inputs have minor impacts on $\beta$ and $\gamma$ in our model. Additional 100 PgC are lost from peatlands under high temperatures and on long time scales leading to an increase in $\gamma$ .
+\begin{figure}[ht!]
+\begin{center}
+\includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/multiGHG_analysis/fig/betaVS.pdf}
+\includegraphics[width=0.43\textwidth]{/alphadata01/bstocker/multiGHG_analysis/fig/betaVSco2.pdf}\\
+\includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/multiGHG_analysis/fig/gammaVS.pdf}
+\includegraphics[width=0.44\textwidth]{/alphadata01/bstocker/multiGHG_analysis/fig/gammaVSdT.pdf}
+\end{center}
+\caption[Carbon cycle sensitivities to \coo\ ($\beta$) and climate ($\gamma$) for model setups excluding different features]{{\sl Upper left}: Change in terrestrial C storage vs. atmospheric C (\coo). {\sl Upper right}: $\beta$ vs. atmospheric C. {\sl Lower left}: Change in terrestrial C storage vs. global mean temperature change. {\sl Lower right}: $\gamma$ vs. global mean temperature change.}
+\label{fig:betagamma}
+\end{figure}
+
+\subsection{Alternative feedback quantifications}
+\label{sec:alt.feedb}
+Effects of model features (Table \ref{tab:simsfeatures}) on carbon cycle sensitivities do not capture their full effect on climate. The response of other forcing agents (here \nno , \chh , and albedo) also depends on whether these features are included in simulations and modify values for the total climate feedback from land $r_{\text{land}}$ (see Figure \ref{fig:feedbacks.supp}, right). As feedbacks arising from the sensitivity of terrestrial C storage exert the strongest influence, results for $\beta$ and $\gamma$ as presented in Section \ref{sec:sensitivities} are reflected in the result for the total feedback factor.\\
+
+As pointed out in Section \ref{sec:sensitivities}, the values of feedback factors depend on the emission scenario and the time scales. Values presented in the article (Section \ref{sec:article.multighg}) are derived from RCP 8.5 simulations and taken at different points in time where the total forcing has not reached a stabilisation. In contrast to this scenario, RCP 2.6 is a strong mitigation scenario with a limited c\coo\ increase and a stabilisation after the mid 21st century. Implications are most evident for the feedback from terrestrial C storage which remains at a comparatively high level, while it decreases in a quantification based on RCP 8.5. This is linked to the decreasing radiative efficiency of \coo\ at high concentrations and the saturating effects of terrestrial C uptake, also visible in Figure \ref{fig:betagamma}. 
+
+\begin{figure}[ht!]
+\begin{center}
+\includegraphics[width=\textwidth]{../fig/feedback_bar_supp.pdf}
+\end{center}
+\caption[Feedback factors derived from a RCP2.6 simulation and an RCP8.5 simulation, given for model setups excluding different features]{{\bf Left:} Feedback factor by forcing agent assessed from simulations following the RCP2.6 scenario. ({\bf a}) Feedback factors in climate-land coupled simulations $r^{\text{T}}_{\text{i}}$, with i=(\coo ,\nno ,\chh , albedo). ({\bf b}) Feedback factors in \coo -land coupled simulations $r^{\text{C}}_{\text{i}}$.  ({\bf c}) Feedback factors in fully coupled simulations $r^{\text{CT}}_{\text{i}}$. Quantified at three time periods: present (mean of 2000-2010 AD), 2100 (mean of 2095-2105), and 2300 (mean of 2290-2300). Rectangles represents minimum (left edge), maximum (right edge), and mean (middle line) of values derived from simulations with different climate change anomaly patterns from the five CMIP5 models applied. Results are from online simulations. {\bf Right:} Feedback factor $r^{\mathrm{T}}$ ({\bf a}), $r^{\mathrm{C}}$ ({\bf b}), $r^{\mathrm{CT}}$ ({\bf c}) evaluated by model features. Feedback factors represent the combined feedbacks from all forcing agents (e\coo , e\nno , e\chh , and albedo). Quantified at three time periods: present (mean of 2000-2010 AD), 2100 (mean of 2095-2105), and 2300 (mean of 2290-2300). Rectangles represents minimum (left edge), maximum (right edge), and mean (middle line) of values derived from simulations with different climate change anomaly patterns from the five CMIP5 models applied. Results are from online simulations.}
+\label{fig:feedbacks.supp}
+\end{figure}
+
+\clearpage
+
+\section{Outlook on greenhouse-gas feedback modeling}
+\label{sec:outlook.multighg}
+The methods and formalisms applied in this chapter provide a convenient framework for the quantification of climate feedbacks, in particular those arising from the terrestrial biosphere. This can easily be extended to include additional model features, e.g., a comprehensive wildfire scheme \citep{prentice11gbc}, or a more sophisticated permafrost representation. Their effects on land-climate interactions is captured by their modification of the total feedback $r_{\text{land}}$ (like in Figure \ref{fig:feedbacks.supp}, right).\\
+ 
+For the feedback quantification, our attempt was to assess how anthropogenic impacts modify feedbacks from the terrestrial biosphere. This was clearly demonstrated for the case of \nr\ inputs amplifying the \nno\ feedback. In our setup, \nr\ inputs include both deposition and mineral fertiliser applications on croplands. Somewhat inconsistently, the effect of manure additions on \nno\ emissions was included by directly prescribing related emissions to the atmospheric budget, instead of explicitly adding manure N to the soil. This was chosen because no spatial dataset for manure application was available. Further, it was pointed out by S. Zaehle ({\it pers. comm.}) that N in manure is partly bound to labile organic compounds and and any manure application involves addition of labile C into the soils. This has implications for the C balance and the available energy for denitrifying bacteria which potentially induces additional effects on \nno\ emissions. Future research could aim at closing the agricultural C and N budgets with grass biomass removal on pastures (grazing), N being concentrated in livestock excreta, and their re-introduction into the system through manure application (involving different C:N ratios in manure than in the grazed biomass).\\
+
+Without having to rely on a coupled Earth system model, $\beta$ and $\gamma$ sensitivities can be quantified not only for terrestrial C storage as in Section \ref{sec:sensitivities}, but also for other forcing agents while feedback factors can be derived from sensitivities (see Section \ref{sec:sensitivities}). However, this bears some caveats. E.g., the sensitivity of e\nno\ can be calculated by regressing terrestrial emissions (with and without additional \nr\ inputs) to temperature. From our simulations, we derive a sensitivity of 0.9 TgNyr$^{-1}$K$^{-1}$ (no \nr ). This has also been done by \citet{xuri12nphyt} who found a similar value (from a similar model) of 1 TgNyr$^{-1}$K$^{-1}$ and derived a respective feedback factor of 0.11 Wm$^{-2}$K$^{-1}$. This is about an order of magnitude larger than the feedback factor presented in \citet{stocker13natcc}. Differences are due to the equilibrium assumption implicit in the calculation of \citet{xuri12nphyt} and the non-linearity of the radiative forcing of \nno\ as a function of its concentration. Future feedback quantifications need to declare their approach and clarify whether equilibrium or transient feedbacks are quantified (see also Section \ref{sec:sensitivities}).  
+
+% \begin{figure}[ht!]
+% \begin{center}
+% \includegraphics[width=0.45\textwidth]{../../presentations/fig/gamma_n2o.pdf}
+% \includegraphics[width=0.45\textwidth]{../../presentations/fig/gamma_ch4.pdf}
+% \end{center}
+% \caption{}
+% \label{fig:ghgregr}
+% \end{figure}
+
+
+% - FB quantification depends on time scale (transient vs. equilibrium)
+% - FB quantification depends on scenario and state of the atmosphere (background concentration of this and other GHGs)
+% - manure data ...

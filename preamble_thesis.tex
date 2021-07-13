@@ -1,0 +1,268 @@
+%------------------------------------------------------------
+%                              Header
+% -----------------------------------------------------------
+
+% Document is double-sided, default font 11 points, documentclass is report
+\documentclass[a4paper,11pt,twoside,final]{report}
+
+% MY OWN SETTINGS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[utf-8]{inputenc}
+\usepackage{ae,aecompl}
+
+%palatino
+% \usepackage[T1]{fontenc}
+% \usepackage[sc]{mathpazo}
+% \linespread{1.05}         % Palatino needs more leading (space between lines)
+
+%day roman
+%\usepackage[T1]{fontenc}
+%\renewcommand*\rmdefault{dayrom}
+
+%bera serif
+%\usepackage[T1]{fontenc}
+%\usepackage{bera}
+
+%utopia (wie im neuen Tagi fuer Lauftext verwendet)
+%\usepackage[T1]{fontenc}
+%\usepackage{fourier}
+
+%% Garamond Expert with NewTX Math
+%\usepackage[T1]{fontenc}
+%\usepackage{garamondx}
+%\usepackage[garamondx,cmbraces]{newtxmath}
+
+%\usepackage[urw-garamond]{mathdesign}
+%\usepackage[T1]{fontenc}
+
+%% times
+%\usepackage{mathptmx}
+%\usepackage[T1]{fontenc}
+
+%\usepackage[Adobe Garamond]{mathdesign}
+
+% Set section heading font
+\usepackage{titlesec}
+\usepackage{helvet}
+
+\titleformat{\chapter}
+  {\bf\sffamily\LARGE}
+  {\thechapter}{1em}{}
+\titleformat{\section}
+%  {\normalfont\sffamily\Large\bfseries}
+  {\normalfont\sffamily\Large}
+  {\thesection}{1em}{}
+\titleformat{\subsection}
+%  {\normalfont\sffamily\large\bfseries}
+  {\normalfont\sffamily\large}
+  {\thesubsection}{1em}{}
+
+\titleformat{\subsubsection}
+%  {\normalfont\sffamily\large\bfseries}
+  {\normalfont\sffamily}
+  {\thesubsubsection}{1em}{}
+
+\titleformat{\paragraph}[runin]
+%  {\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
+  {\normalfont\normalsize\sffamily}
+  {\theparagraph}{1em}{}
+
+\titleformat{\subparagraph}[runin] 
+%  {\normalfont\normalsize\bfseries}{\thesubparagraph}{1em}{}
+  {\normalfont\normalsize\sffamily}
+  {\thesubparagraph}{1em}{}
+
+\newcommand{\myparagraph}[1]{\paragraph{#1}\mbox{}\\}
+
+\usepackage{gensymb} %provides e.g. celsius sign
+\usepackage{textcomp} %provides additional signs
+\usepackage{booktabs,url,array}
+\usepackage[colorlinks=false]{hyperref}
+\usepackage{natbib}
+\usepackage{lscape}
+\usepackage{multicol}
+\usepackage{german}
+%\usepackage[english]{babel}
+\selectlanguage{english}
+\usepackage{graphicx}
+\setcounter{secnumdepth}{3}             % Ebenennummer, die noch nummeriert wird
+\setcounter{tocdepth}{2}                % Ebenennummer, die ins Inhaltsverzeichnis 
+\usepackage{pifont}                     % provides funny symbols
+
+% Line spacing utilities
+\usepackage{setspace} 
+
+% um paper als pdf einzubauen
+\usepackage{pdfpages}
+
+% use loops to load single pdf pages
+\usepackage{forloop}
+\newcounter{ct}
+
+% use package to include background image on title page
+\usepackage{wallpaper}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% Use the language package german. Do not enlarge space when a new sentence starts.
+%\usepackage{german}
+%\frenchspacing
+
+% Use the package dcolumn for decimal columns in tables
+\usepackage{dcolumn}
+
+% Use the package for A4 paper
+\usepackage{a4wide}
+
+% Use the AMS-LaTeX package for enhanced mathematical capabilities 
+\usepackage{amsmath}
+
+% Some more symbols (e.g., check marks)
+\usepackage{amssymb}
+\usepackage{pifont}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
+
+%-------------
+% Use the fancyhdr-package and redefine headings, page numbers, etc.
+%\usepackage{../sty/fancyhdr/fancyhdr}
+\usepackage{fancyhdr}
+% Use the pagestyle of this package
+\pagestyle{fancy}
+% Redefine the mark for the even side: chapternumber + chaptername in uppercase letters
+%\renewcommand{\chaptermark}[1]{\markboth{\small\MakeUppercase{\thechapter.\ #1}}{}}
+%\renewcommand{\chaptermark}[1]{\markboth{\small\MakeUppercase{CHAPTER \thechapter}}{}}
+\renewcommand{\chaptermark}[1]{\markboth{\small\textsl{\MakeUppercase{\chaptername\ \thechapter}}}{}}
+%\renewcommand{\chaptermark}[1]{\markboth{\small\textsc{\chaptername\ \thechapter}}{}}
+
+% Redefine the mark for the odd side: sectionnumber + sectionname in uppercase letters
+\renewcommand{\sectionmark}[1]{\markright{\small\textsl{\MakeUppercase{\thesection.\ #1}}}{}}
+%\renewcommand{\sectionmark}[1]{\markright{\small\textsc{\thesection.\ #1}}{}}
+
+% Clear all headings
+\fancyhf{}
+% Pagenumber on the left of even and on the right of odd pages
+\fancyhead[LE,RO]{\thepage}
+% Chapter on the right of even pages
+\fancyhead[RE]{\leftmark}
+% Section on the left of odd pages
+\fancyhead[LO]{\rightmark}
+% Draw line below heading
+\renewcommand{\headrulewidth}{0.5pt}
+% No footer, no line at the bottom of the page
+\renewcommand{\footrulewidth}{0pt}
+% Redefine pagestyle 'plain' for starting chapters: all empty
+\fancypagestyle{plain}{\fancyhead{}\renewcommand{\headrulewidth}{0pt}}
+% Incrase height of head a little bit
+\addtolength{\headheight}{2pt}
+% End of fancyhdr-Definitions
+%--------------
+
+% Use the graphicx package with the PostScript Driver dvips
+%\usepackage[dvips]{graphicx}
+
+% Redefine: minimum fraction of text on a page 
+\renewcommand{\textfraction}{0.2}
+% Redefine: maximum fraction of floating objects on top of page
+\renewcommand{\topfraction}{0.8}
+% Redefine: maximum fraction of floating objects on bottom of page
+\renewcommand{\bottomfraction}{0.6}
+% Redefine: minimum fraction of page that must be filled when containing only floating objects 
+\renewcommand{\floatpagefraction}{0.70}
+
+% Use the xspace package to provide a space after user defined abbreviations if one is necessary (if a word follows) and to supress the space at the end of the sentence. See the definition of \COO below.
+%\usepackage{xspace}
+
+% Define table environment modifications
+\newcommand{\tophline}{\hline\noalign{\vspace{1mm}}}
+\newcommand{\middlehline}{\noalign{\vspace{1mm}}\hline\noalign{\vspace{1mm}}}
+\newcommand{\bottomhline}{\noalign{\vspace{1mm}}\hline}
+\newcommand{\specialcell}[2][c]{%
+  \begin{tabular}[#1]{@{}c@{}}#2\end{tabular}}
+
+
+% Use the booktabs package to make nice lines in tables
+\usepackage{sty/booktabs}
+
+% Use the package caption2 for captions in smaller font
+\usepackage[footnotesize]{caption2}
+% possible options: see 'Using imported graphics in LaTeX2e, p.52
+% Indent captions at each side
+%\setcaptionmargin{1cm}
+% Write 'Figure' and 'Table' in bold font
+\renewcommand*{\captionlabelfont}{\small\bfseries}
+\renewcommand\captionfont{\small\sffamily}
+
+% Use the package flafter to make sure floating objects appear after their declaration in the text
+\usepackage{flafter}
+
+% Use the package endfloat to move all figures to the end of the text
+% 
+% \usepackage{endfloat}
+% \nofiglist
+% \notablist
+% \renewcommand*{\figureplace}{%
+%    \begin{center}[\figurename~\thepostfig\ etwa hier.]\end{center}}%
+% \renewcommand*{\tableplace}{%
+%    \begin{center}[\tablename~\theposttbl\ etwa hier.]\end{center}}%
+
+% Enlarge line spacing (doppelter Zeilenabstand => 1.6)
+% \linespread{1.6}
+
+% Use the Journal of Geographical Research package to make the bibliography
+% Note: in 'jgr_g' (german version of 'jgr') the 'and' is changed to 'und' (e.g. Stocker und Stauffer 98 instead of Stocker and Stauffer 98)
+%\usepackage{../sty/jgr}
+
+% Set indent(Einzug) = 0 at the beginning of new paragraphs
+\setlength{\parindent}{0cm}
+
+% Change the \paragraph{} style (see LaTeX Begleiter, p. 26)
+% \makeatletter
+% \renewcommand{\paragraph}{\@startsection
+% {paragraph}% Name
+% {4}% Ebene
+% {0mm}%Einzug
+% {0.7\baselineskip}%Vorabstand
+% {-0.00mm}%Nachabstand
+% {\normalfont\normalsize\bfseries}}%Stil
+% \makeatother
+
+
+% New user-defined commands
+% =========================
+
+% \clearemptydoublepage: start a new page on the right side of the book (odd page number).
+% Used before the \chapter command and in similar cases
+\newcommand*{\clearemptydoublepage}{\newpage{\pagestyle{empty}\cleardoublepage}}%
+
+% Text aliases
+\newcommand{\coo}{CO$_{\text{2}}$}
+%\newcommand{\chh}{\ensuremath{\mathrm{CH}_4}}
+\newcommand{\nno}{N$_{\text{2}}$O}
+\newcommand{\chh}{CH$_{\text{4}}$}
+\newcommand*{\kgpmmm}{kg\,m$^{{\text{-3}}}$\xspace}%
+\newcommand*{\mmps}{m$^2$\,s$^{-1}$\xspace}%
+\newcommand*{\mmmps}{m$^3$\,s$^{-1}$\xspace}%
+\newcommand*{\mmpy}{mmJahr$^{-1}$\xspace}%
+\newcommand*{\wpmm}{Wm$^{-2}$\xspace}%
+\newcommand*{\wpmmpk}{Wm$^{-2}$K$^{-1}$}%
+\newcommand*{\albedo}{$\alpha$}
+\newcommand{\degC}{$^{\circ}$C}
+\newcommand{\ud}{\,\mathrm{d}}
+\newcommand{\dBC}{\ensuremath{\delta^{13}}C}
+\newcommand{\dc}{\ensuremath{\Delta}C}
+\newcommand{\degrees}{\ensuremath{^{\circ}}}
+\newcommand{\PG}[2]{\mbox{\ensuremath{#1\;\mathrm{#2}}}}% Physikalische Groesse
+\newcommand{\ooot}{O$_{\text{3}}^{\text{tropos.}}$}
+\newcommand{\ooos}{O$_{\text{3}}^{\text{stratos.}}$}
+\newcommand{\nox}{NO$_{\text{x}}$}
+\newcommand{\nhy}{NH$_{\text{y}}$}
+\newcommand{\nr}{N$_{\text{r}}$}
+\newcommand{\nn}{N$_{\text{2}}$}
+\newcommand{\nhhh}{NH$_{\text{3}}$}
+\newcommand{\nhhhh}{NH$_{\text{4}}^+$}
+\newcommand{\nooo}{NO$_{\text{3}}^-$}
+\newcommand{\noo}{NO$_{\text{2}}^-$}
+\newcommand{\rh}{R$_{\text{h}}$}
+

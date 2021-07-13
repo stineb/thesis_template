@@ -1,0 +1,111 @@
+\chapter*{Outlook}
+{\it Here is a specific overview of open issues and possible future work: }
+\begin{itemize}
+\item LPX-Bern 1.1, a new version to be born, which includes the TOPMODEL
+  approach for wetlands and the dynamic peatland model on top of
+  simulating multiple greenhouse-gas emissions, will be applied to a
+  Glacial-Interglacial simulation with Dansgaard-Oeschger-type events
+  ``branching off'' from a long term transition into LGM
+  conditions. This work has already been initiated in collaboration
+  with S. Harrison, C. Prentice, A. Timmermann, and L. Menviel.
+\item Holocene land use change emission estimates could be revisited applying
+  the generated transitions approach described in Chapter
+  \ref{sec:lutrans}, with spatio-temporal information on sedentary and
+  shifting cultivation-type agriculture from
+  \citet{olofssonhickler2008}% \footnote{Datasets already kindly
+%     provided by J. Olofsson}
+  . Such a modeling effort could include
+  a dynamic peatland representation (see Chapter \ref{sec:topmodel})
+  and could be extended to investigate the complete terrestrial C budget
+  over the Holocene (as the somewhat preliminary attempt presented in
+  Section \ref{sec:afterword.holoLU}). This model setup should
+  be initialized at the LGM (or at the last interglacial, at best) to capture the slow and delayed dynamics of
+  peatlands, permafrost, and vegetation dynamics in response to the
+  climatic changes and ice sheet retreat over the Deglaciation. 
+\item The discussion on the definition issues of land use change
+  emission quantifications in Section \ref{sec:lucdef} could be
+  complemented with a quantification of these component fluxes with
+  emission-driven simulations applying either the coupled Bern3D-LPX
+  or the simple BernCC-LPX model. A brief paper, referring to the work by
+  \citet{strassmann08tel} could be prepared as a comment to
+  \citet{gasserciais13} and \citet{pongratz13}. In these publications, no
+  attempt has been made to show exactly how much the difference is
+  between different land use emission definitions.
+\item Feedback definition issues and possible model developments related to
+  greenhouse-gas modeling are mentioned in Section
+  \ref{sec:outlook.multighg}.
+\item The dynamic peatland model needs further development as
+  outlined in Section \ref{sec:discussion}.
+\end{itemize}
+
+{\it And a bit less specifically on the issue of global vegetation model development:}\\
+Over the last years, a new generation of global vegetation models has
+evolved which account for the coupled cycling of carbon (C) and
+nitrogen (N) \citep{thornton07,xuri08gcb,jain09,zaehle10ocn1,esser11,gerber10}. Efforts
+in model development have been motivated by the appreciation of the
+key importance of nutrient limitation to C sequestration under future
+climate change and atmospheric \coo\ scenarios
+\citep{hungate03}. However, the large range of C sequestration
+projections apparent in ``last-generation'' C-only models has not been
+significantly narrowed down by C-N models \citep{zaehle13}. This is
+probably to a large degree linked to
+differences in representations of processes responsible for long-term
+ecosystem N balance (see also Section \ref{sec:nmodels}). How can
+models be better constrained by observations and their structure be
+improved? \\
+
+The structure of global vegetation models reflects established (non-spatial) models and
+theories in ecology. There can be decades of research
+behind a single arrow as drawn in Figure \ref{fig:dyn}. E.g., the
+uptake of organic N has only relatively recently been demonstrated in field experiments
+\citep{nasholm98}, but is still lacking an appropriate
+representation in global vegetation models. Similarly,
+plant-rhizosphere interactions with feedbacks to soil organic matter
+decomposition or the competition between N-fixing and
+other plant species have been shown to play an important role in
+shaping ecosystems' response to changing environmental conditions
+\citep{fontaine07,phillips13,hedin09}, but are often not taken into account in global vegetation
+models. Obviously, computer model development lags behind the frontiers in ecological
+research, but the identification of such crucial and well-established mechanisms and their implementation
+in global vegetation models is key to simulating the
+{\it right model responses for the right reason}. Future development
+in global vegetation C-N models will have to revisit the models' ``cores''
+and adopt such new concepts. An example for a promising starting-point
+is the FUN model for plant carbon economics and nutrient uptake
+\citep{fisher10} - a
+task that will hopefully keep me busy in the near future.\\
+
+Once a model rests on a ``good'' process representation, constraining parameters by observational data (benchmarks) is inevitable and
+bears great potential for probabilistic assessments
+\citep{steinacher13}. A range of benchmarking datasets 
+\citep{luo12,dalmonech13} should be used routinely within a single, 
+easy-to-use framework to guide model development. In my view, this should have
+highest priority and may involve collaboration between different land
+modeling groups. However, it may be challenging to use data from manipulative
+site experiments to establish a robust set of benchmarks for model responses
+to environmental perturbations (e.g., \coo\ increase, soil warming, \nr\
+deposition). Targeting broad response ratios calculated by
+meta-analyses could resolve some of the difficulties associated with
+conflicting findings and large value ranges often reported from single site studies \citep{barnard05}.\\
+
+Testing and tuning models with present-day and historical observations
+does not preclude the possibility of future surprises with large and
+overriding consequeces. The notion of the {\it unknown unknown} which may
+fundamentally alter the outcome of an expected development has been
+termed a {\it Black Swan} \citep{taleb}. In this light, it appears
+important not only to address processes represented in the
+models today and make {\it predictions} but to search for the Black Swans
+and address the {\it risks} by asking what future development can or
+cannot be excluded. An impressive example is given in
+\citet{nabuurs13} (their Figure 3) who present a time series of stem volume damage in
+European forests since 1850 AD and reveal a dramatic trend in the
+frequency and magnitude of natural disturbances, dominated by extreme
+winds with implications for the C sink in forests. Such events not
+only evade the ``radar'' of global vegetation models but are also
+notoriously difficult to simulate in meteorological models, let alone
+be projected into the future by today's state-of-the-art climate models. 
+
+
+% Highlight the difficulties in simulating the terrestrial response to climate change and \coo\ increase. Possible future directions of model development (N uptake, plant-soil interactions mediated by microbes and fungi).
+ 
+% include figure from nabuurs

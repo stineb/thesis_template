@@ -1,0 +1,518 @@
+\chapter{Simulating land use transitions and wood harvesting}
+\label{sec:lutrans}
+
+This chapter presents the implementation of gross land use transitions in LPX. This work has been initiated by Kuno Strassmann who proposed a general approach to the model implementation. Fabian Feissli then took on the task as a Master's student to implement such a model in LPX and conduct simulations of historical and future land use emissions. He also took the lead on writing a manuscript which was finally declined for publication in {\it Geophysical Research Letters}. For a re-submission, the wood harvest input data had to be revised after a bug has been identified and all simulations previously conducted by F. Feissli had to be repeated. I also revisited the algorithms used to read in and process (necessary corrections of original data) the land use transitions data. Section \ref{sec:article.lutrans}, the core of this chapter, contains the manuscript, that has been resubmitted to {\it Tellus B}. Additional simulations conducted to explore the implementation of wood harvest are presented in Section \ref{sec:harvest}. Finally, Section \ref{sec:lucdef} contains a discussion of the issue of how to define ``land use change emissions'' in a modeling framework and how to separate component fluxes (replaced sinks/sources, and the land use change feedback flux).
+
+\section{Article}
+\label{sec:article.lutrans}
+\section*{Past and Future Carbon Fluxes from Land Use Change, Shifting Cultivation and Wood Harvest }
+\label{sec:lutrans.article}
+{B.~D.~Stocker\footnotemark[1]\footnotemark[2],
+F.~Feissli\footnotemark[1]\footnotemark[2],
+K.~Strassmann\footnotemark[1]\footnotemark[2],
+R.~Spahni\footnotemark[1]\footnotemark[2],
+F.~Joos\footnotemark[1]\footnotemark[2],
+}
+\bigskip\\
+\noindent
+{Submitted to \emph{Tellus B}, Oct.~2013, in review}
+
+
+\footnotetext[1]{Climate and Environmental Physics, Physics Institute, University of Bern, Switzerland}
+\footnotetext[2]{Oeschger Centre for Climate Change Research, University of Bern, Switzerland}
+\clearpage
+%\input{../../projects/lutrans/latex/lutrans_article_20131003.tex}
+\subsection*{Abstract}
+{\sf Carbon emissions from anthropogenic land use change (LUC) are quantified with a Dynamic Global Vegetation Model for the historical period and the 21st century following Representative Concentration Pathways (RCP). Wood harvesting and parallel abandonment and expansion of agricultural land in areas of shifting cultivation are explicitly simulated based on the LUH dataset by \citet{hurtt06gcb} and a proposed alternative method that relies on minimum input data. Cumulative emissions are around 72 GtC by 1850 and 244\,GtC by 2004 and 27 to 151\,GtC for the next 95 years following the different RCP scenarios. In the last decade, shifting cultivation and wood harvest within remaining forests and including slash each contributed 19\% to the mean annual emissions of 1.2\,GtC/yr. Despite the slowing trend of agricultural expansion in all RCPs, these factors, in combination with amplification effects under elevated CO$_2$, make up a large fraction of future emissions from land use and land use change.}
+
+\subsection*{Introduction}
+
+%% generell: wieso wichtig?
+Land use (LU), land use change and forestry (LUC) is generally associated with a reduction in vegetation \citep{baccini12, harris12} and - to a varying degree - soil carbon (C) storage \citep{guo02} resulting in carbon emissions to the atmosphere \citep{watson00,mcguire2001gbc,houghton12bg}. LUC and soil cultivation not only affects the cycling of C, but also impacts nutrients, such as nitrogen (N) and phosphorous (P), the emissions of greenhouse gases from soils (e.g., N$_2$O, CH$_4$), and emissions of chemical reactive compounds, in particular by LUC-related fires. The modification of the land surface by LUC also affects biogeophysical properties, such as albedo, water, and energy fluxes \citep{bala07pnas,feddema05,claussen2001grl}. LUC was shown to affect the seasonal variation in temperature, and precipitation patterns, snow cover in high latitude regions, and atmospheric dynamics, and entails consequences on biodiversity and socio-economic aspects \citep{unep2002, iucn2000}.
+
+%% Daten fuer Modelle
+\citet{hurtt06gcb} suggest that 42-68\% of the land surface has been affected by conversion to croplands and pastures and by wood harvesting since 1700 AD. Parallel expansion and abandonment of agricultural land (shifting cultivation), afforestation, wood harvesting and successive recovery leaves behind a vast area of secondary land where biogeochemical cycling and biogeophysical properties are altered and only re-genarate to "natural" conditions on time scales of decades to centuries. Such legacy effects co-determine the terrestrial C balance and the human impact on the C cycle, but this complexity is often not or only partly taken into account \citep{brovkin13jclim} due to a lack of information determining the myriad transitions between different land use categories and the methodological challenges of its implementation in land carbon cycle models. % Houghton (2000) indicate that  parallel expansion and abondonment of land is significant. This study shows that the difference between net and gross changes in cropland area in the USA may be on average as large as 35\%.
+
+\citet{hurtt06gcb} combined satellite data, and national forestry and agriculture statistics with assumptions for the land turnover rate and the spatial distribution of shifting cultivation in a dataset (LUH), defining the evolution of the area under LU and all transitions between LU categories. Thus, the LUH data provide information to represent shifting cultivation as bi-directional (gross) land use transitions. For example, the conversions from forest to cropland and vice versa are considered individually, whereas traditional ``static'' LU maps provide only {\it net} changes in area (see Figure \ref{fig:schematic}).
+\begin{figure}
+\begin{center}
+ \includegraphics[width=0.4\textwidth]{../fig/Shifting_cultivation_new-crop.pdf}
+ \caption[Schematic illustration of simulating gross versus net land use change]{Schematic illustration of simulating gross versus net land use change. Under a scheme for gross land use change (upper row), land is claimed and abandoned for/from use as cropland in parallel within one gridcell. Under a scheme for net land use change (lower row), only the difference of claimed minus abandend undergoes a transition to use as cropland. In the latter scheme, a smaller gridcell area fraction is affected by land use change.}
+ \label{fig:schematic}
+\end{center}
+\end{figure}
+
+The concept of gross land use transitions can also accomodate wood harvesting as a transition from and to forested (non-agricultural) land, not captured when only accounting for net LU changes. The cumulative removal of harvested biomass was estimated by \citet{houghton1999tel} to 106 GtC (1850-1990 AD), plus 149 GtC of slash that was produced additionally. \citet{hurtt06gcb} (LUH) provide similar estimates for this period. They reconstruct 100 GtC of cumulative harvested biomass, including slash, plus 105 GtC, or 153 GtC, from land conversion to agriculture based on the HYDE and the SAGE/HYDE land use maps. 
+
+Wood harvest results in a C flux out of the terrestrial biosphere on the order of 1 GtC/yr at present. However, land affected by wood harvest and abandoned agricultural land acts as a C sink during vegetation regrowth and the net effect is much smaller. Still, the general reduction of C stocks in forests affected by wood harvest implies an additional C source, which has been estimated by \citet{houghton10tel} to 28\%. \citet{olofssonhickler2008} estimated a contribution by shifting cultivation effects alone of 28\% for the historical period since the appearance of early agriculture. \citet{shevliakova09gbc} applied the LUH dataset for the historical period and suggest an increase of LUC emissions by 40-49\% due to effects of shifting cultivation and wood harvest. 
+
+Other published LUC model simulations based on LUH and covering the Representative Concentration Pathways (RCPs) \citep{vanvuuren11cc} for the 21st century either report LUC-induced changes in above-ground biomass only \citep{hurtt11}, or present global total net ecosystem exchange where LUC emissions are not separated from fluxes resulting from other drivers \citep{lawrence12jclim}. \citet{brovkin13jclim} presented results from six, state-of-the-art, CMIP5 Earth System Models, of which only one model accounted for both wood harvest, and gross transitions. This model suggests the highest future LUC emissions, but effects of shifting cultivation and wood harvest have not been separated from other aspects (e.g., vegetation C density).
+
+Here, we simulate carbon emissions from gross LU transitions in the nitrogen-enabled Land surface Processes and eXchanges (LPX-Bern 1.0) Dynamic Global Vegetation Model. In our analyses, we focus particularly on the contribution of land turnover and wood harvest to LUC emissions and extend the scope of earlier studies by addressing these effects in all four Representative Concentration Pathways based on the LUH dataset.
+
+Historical land use reconstructions are uncertain \citep{gaillard10cp} and assessments of its impact on the preindustrial carbon cycle ideally rely on considering different contrasting reconstructions (HYDE \citep{kleingoldewijk2011geb}, SAGE \citep{ramankutty1999gbc} and \citet{kaplan11}) and multiple scenarios \citep{stocker11bg}. However, the assessment of the impact of shifting cultivation is still restricted by the limited data on bi-directional transitions (so far, only the LUH dataset provides this information), while static LU maps are available for a range of different reconstructions \citep{kleingoldewijk2011geb,pongratz08gbc,kaplan11} and for periods not covered by LUH.
+
+The goal of this study is thus also to develop and apply an alternative method to include shifting cultivation and wood harvest in other, static LU reconstructions. This method avoids problems with artifact fluxes related to model spin-up and varying transition priorities when using the LUH dataset.
+
+\subsection*{Methods}
+\subsubsection*{Land use transition model}
+The LUH dataset incorporates the HYDE 3.1 static LU maps of cropland, pastures and urban areas. In addition, LUH distinguishes the remaining natural land in primary and secondary, and resolves net LU change into bi-directional area transitions. Secondary land is defined as natural land, previously disturbed by and recovering from anthropogenic activity \citep{hurtt06gcb}. LU areas $A_k^t$ are given as the fraction of each grid cell occupied by LU category $k$, at year $t$, at a $0.5\times0.5^{\circ}$ spatial resolution and will be referred to as 'LU states'. Area transitions $\Delta A_{lk}^t$ denote the fractional areas converted from category $l$ to category $k$ and will be referred to as 'LU transitions'. %We call these bi-directional transitions ``gross LU transitions''. 
+
+The transitions $\Delta A_{lk}^t$ are composed of three components of a transition matrix $\mathbf{\Delta A}$ (Equation \ref{eq:DAmat}) and must satisfy the constraint given in Equation (\ref{eq:lutr}) below:
+
+\begin{eqnarray}
+ \mathbf{\Delta A} = \mathbf{\Delta A}_{\mbox{\scriptsize net}} + \mathbf{\Delta A}_{\mbox{\scriptsize lato}} + \mathbf{\Delta A}_{\mbox{\scriptsize harvest}}, \label{eq:DAmat}\\
+ \sum_{l=1}^{N_{\mbox{\tiny LU}}} \left(\Delta A_{lk}^t - \Delta A_{kl}^t \right) = A_{k}^{t+1} - A_k^t. \label{eq:lutr}
+\end{eqnarray}
+
+$\mathbf{\Delta A}_{\mbox{\scriptsize net}}$ is a matrix describing minimal area transitions to satisfy the net change in LU areas between two time steps (Equation \ref{eq:lutr}). These ``net LU transitions'' are comparable to the representation of LUC in earlier studies \citep{strassmann08tel, stocker11bg}. In contrast, C pools on secondary land are explicitly tracked here. $\mathbf{\Delta A}_{\mbox{\scriptsize lato}}$ represents the additional transitions (land turnover) under shifting cultivation-tpye agriculture, where crop and pasture land is abandoned and re-claimed in parallel. $\mathbf{\Delta A}_{\mbox{\scriptsize lato}}$ does not lead to a net change in area covered by the respective land use category. $\mathbf{\Delta A}_{\mbox{\scriptsize harvest}}$ is a diagonal matrix for area transitions representing wood harvesting. It affects the land use categories "primary" and "secondary" and describes by how much the tree cover and thus the number of trees and carbon stocks in living vegetation are reduced in each of these categories. In other words, $\Delta A_{kk}$ undergoes LUC but does not change the LU category. $\mathbf{\Delta A}_{\mbox{\scriptsize harvest}}$ is determined interactively on the basis of LUH input data for the C mass harvested per gridcell and year and the simulated vegetation C density in LPX. Deforested wood biomass associated with the conversion $\mathbf{\Delta A}_{\mbox{\scriptsize net}} + \mathbf{\Delta A}_{\mbox{\scriptsize lato}}$ is not counted towards satisfying wood harvest statistics.
+
+Vegetation, litter, and soil pools are treated separately in each fractional land area $A_k^t$ (tile) and grid cell. C and N mass of soil and litter pools, and soil water on extending and contracting source area fractions $A_k^t$ are reallocated and mixed with pools on destination land area fractions ($A_l^{t+1}$) to conserve total mass. Vegetation C and N on contracting $A_k^t$ is diminished by reducing the number of individual trees and associated C (N) mass is divided up between product pools (0,\,2,\,20\,yr turnover time) and litter pools of destination land area fractions $A_l^{t+1}$ (see Appendix \ref{app1}). 
+
+Management on agricultural land (crop and grass harvest) is implemented as a fraction of above-ground biomass turnover that is directly oxidized, instead of being diverted to the litter pool. Additionally, the soil turnover rate is increased on croplands to account for accelerated oxidation of soil organic matter due to tilling. This implies a reduction of soil C on croplands on the order of 30\% and no consistent change on pastures and is in general agreement with observational studies \citep{davidson93,guogifford02gcb,murty02gcb,ogle05bgchem}.
+
+The dynamics and interactions of C, N, and water pools are simulated by the LPX-Bern 1.0 Dynamic Global Vegetation Model (DGVM) \citep{spahni12cpd, stocker13natcc} on a $1^\circ \times 1^\circ$ spatial resolution. LPX is based on the Lund-Potsdam-Jena (LPJ) DGVM \citep{sitch03gcb}, includes a dynamical N cycle \citep{xuri08gcb}, and builds on LUC representations as detailed by \citet{strassmann08tel} and \citet{stocker11bg} with harvest on agricultural land as suggested by \citet{shevliakova09gbc}. N limitation is relaxed on agricultural land due to N fertilizer application.
+
+Representing LUC by $\mathbf{\Delta A}$ differs from earlier representations \citep{strassmann08tel, stocker11bg} by accounting for shifting cultivation and harvest, but also implies the distinction between C and N pools on primary and secondary land (the process formulations and parameter values are identical for the two classes).
+
+\subsubsection*{Generated transitions}
+Alternative to the LUH data, we calculate  $\mathbf{\Delta A}$ using the maps $A_k^t$ and data on (i) the spatial distribution of shifting cultivation (ii) the land turnover rate, (iii) wood harvest data, (iv) a priority list defining from which LU category area is claimed to satisfy expansion in another LU category to determine $\mathbf{\Delta A}_{\mbox{\scriptsize net}}$ and $\mathbf{\Delta A}_{\mbox{\scriptsize lato}}$ (Table \ref{tab1}). This method is termed ``generated transitions''. It may be applied to any LU dataset $A_k^t$ combined with additional information (i)-(iv). We compare results based on the generated transitions method with the LUH data. Accordingly, for the generated transitions we use data for $A_k^t$ (but not $\Delta A_{lk}^t$) and for the distribution and turnover rate of shifting cultivation areas from LUH. The turnover rate describes the fraction of croplands and pastures abandoned each year and re-claimed from natural land and is set to $1/15$ yr$^{-1}$. Wood is harvested from both primary and secondary land in proportion with priority determined by the LUH input data. All natural land affected by land use at any point during the simulation is considered secondary land. Its extent therefore depends on the starting year of the simulation and the duration of the model spin-up. %A code example for deriving generated transitions is provided in the electronic supplements.
+\begin{table}
+ \caption{Generated transitions priorities]{Generated transitions priorities. Numbers represent priority of transitions executed to satisfy net land use area changes (transition priorities associated with land turnover are in bold print). Cropland and pasture area abandoned due to shifting cultivation is always transferred to secondary (not shown here). E.g., if between two given years' LU states, cropland expands while primary is reduced, then the respective transition is calculated first and $\mathbf{\Delta A}_{\mbox{\scriptsize net}\;prim,crop}$ is set. If the cropland expansion is not fully met by this transition, then additional land is claimed from secondary, pasture or built-up land in this order, given the respective category is contracting between the two time steps. In a second step, $\mathbf{\Delta A}_{\mbox{\scriptsize lato}}$ is set and involves only transitions numbered 1,2,5,6  in the table and are derived in this order, aplying the same algorithm as described for $\mathbf{\Delta A}_{\mbox{\scriptsize net}}$.}
+ \centering
+\small\sffamily
+\begin{tabular}{lccc}
+\hline
+ \multicolumn{1}{c}{$\to$} &	croplands &	pasture &	built-up \\
+ primary                   &  \textsf{\bf{1}}     &  \textsf{\bf{6}}    &           10   \\
+ secondary                 &  \textsf{\bf{2}}     &  \textsf{\bf{5}}    &	    9    \\
+ croplands                 &		- &           7 &	    12    \\
+ pasture                   &		3 &	      - &	    11    \\
+ built-up                  &		4 &           8 &	    -    \\
+ \hline
+\end{tabular}
+% \tablenotetext{}{}
+\label{tab1}
+\end{table}
+
+\subsubsection*{Modeling protocol}
+The model is spun up to equilibrate C pools using $\mathbf{A}$ for 1500 AD, i.e., a fixed distribution of primary, secondary, and agricultural land based on the LUH data, and $\mathbf{\Delta A} = 0$ except for the last 300 years of the spin-up, where a transition matrix $\mathbf{\Delta A}^{\star}$(1500 AD) is applied. $\mathbf{\Delta A}^{\star}$(1500 AD) is derived from $\mathbf{\Delta A}$(1500 AD) but corrected so that no net changes in $\mathbf{\Delta A}$ result. The secondary land fraction is zero during the spin-up and at beginning of the transient simulation, as given by the LUH data. In the generated transitions method, we follow a similar procedure, except that secondary land is created during the last 300 years of the spin-up as a result of continuous land turnover under shifting cultivation.
+
+The LUC-related C flux to the atmosphere is evaluated from simulations with and without LUC ($ e_{\mathrm{LU}} = - \Delta C_{\mathrm{LU}} + \Delta C_{\mathrm{no\,LU}} $), where the carbon uptake by the terrestrial biosphere $\Delta C$ is calculated as the net ecosystem production minus the carbon release from product pools. In the standard setup (gross, including wood harvest) the full transition matrix, $\mathbf{\Delta A}$, is prescribed. Two additional simulations are used to attribute emissions to net area change, to land turnover, and to wood harvest. The effect of land turnover is calculated as the difference from a simulation where $\mathbf{\Delta A}_{\mbox{\scriptsize net}}+\mathbf{\Delta A}_{\mbox{\scriptsize lato}}$ is used and one where land use change is simulated as in \citet{stocker11bg} (similar as using only $\mathbf{\Delta A}_{\mbox{\scriptsize net}}$). The effect of wood harvest is derived as the difference between the standard setup (full matrix $\mathbf{\Delta A}$) and the setup using $\mathbf{\Delta A}_{\mbox{\scriptsize net}}+\mathbf{\Delta A}_{\mbox{\scriptsize lato}}$.
+
+Climate and CO$_2$ are prescribed from observational data up to 2005 AD. Afterwards, CO$_2$ is prescribed from the the RCP data, while climate change is prescribed from the CMIP5 output of the IPSL-CM5A-LR model \citep{dufresne13cd}. This model features a moderate polar amplification of temperature change and yields intermediate results when prescribing its climate change pattern to simulate the terrestial C balance changes and greenhouse gase emissions with LPX \citep{stocker13natcc}. Prescribing changes in climate and CO$_2$ yields {\it total} emissions. Primary emissions are quantified from simulations with constant preindustrial climate (1901-1931 climatology from CRU TS 3.1 \citep{mitchelljones05clim}) and CO$_2$ (278.3 ppm). Individual effects of climate (CO$_2$) are assessed with simulations where only CO$_2$ (climate) is held constant at pre-industrial levels. In all simulations, N deposition from \citet{lamarque11cc} and inorganic N fertilizer inputs from \citet{zaehle11ngeo, stocker13natcc} are prescribed.
+
+\subsection*{Results}
+\subsubsection*{Past Emissions}
+Total cumulative LUC emissions reach 71.8\,GtC (generated LU transitions: 65.9\,GtC, see section \ref{generated}) by 1850 AD (including pre-1500 AD losses) and 243.7\,GtC (generated: 231.7) by 2004. Total LUC fluxes decrease from 1.55\,GtC/yr and 1.57\,GtC/yr in the 1980s and 1990s to 1.21\,GtC/yr in the 2000s (Table \ref{tab:hist}, Figure \ref{fig:fluc.hist}). These estimates are comparable with other studies \citep{pan11sci,stocker11bg,houghton12bg}. 
+\begin{figure}
+\begin{center}
+ \noindent
+ \includegraphics[width=0.8\textwidth]{../fig/fLUC_types}
+ \caption[Annual LUC emissions over the historical period]{Annual LUC emissions over the historical period. Splined annual emissions (thick color lines) and year-by-year data for ``gross, incl. wood harvest'' (thin grey line) are shown. The dashed lines (``land turnover contribution'' and ``harvest contribution'') are the differences between the respective curves (``land turnover contribution''$=$ ``gross, no wood harvest''$-$ ``net''; ``harvest contribution''$=$ ``gross, incl. wood harvest''$-$ ``gross, no wood harvest'')}
+ \label{fig:fluc.hist}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+ \noindent
+ \includegraphics[width=0.8\textwidth]{../fig/map_fLUC_small}
+ \caption[Spatial distribution of cumulative historical LUC emissions and its components]{Spatial distribution of cumulative historical LUC emissions and its components. {\it top:} Total (gross, incl. wood harvest) cumulative LUC emissions in kgC/m$^2$ {\it middle:} Cumulative emissions due to wood harvest. {\it Bottom:} Effect of land turnover (including the introduction of secondary land) as the difference between the run with gross LU transitions and a run with net LU transitions; both runs do not consider wood harvest. Note the different color scales in the upper and the lower two panels.}
+ \label{fig:fluc.hist.map}
+\end{center}
+\end{figure}
+
+While land use change represents a source of C on the global scale, the picture is regionally more heterogenous (see Figure \ref{fig:fluc.bycont}). E.g., in Europe land use change represented a source of 15 TgC/yr during the 1980s and was a small sink of 3 TgC/yr over the period 2000-2004 AD. LUC emissions have been increasing in Africa, South Asia, East Asia, and in Central and South America during the first part of the 20th centrury, but levelled off thereafter, showing a declining trend today in Latin America and the Asian regions.
+\begin{figure}
+ \noindent
+ \includegraphics[width=\textwidth]{../fig/fLUC_bycont.pdf}
+ \caption[Annual LUC emissions by region]{Annual LUC emissions by region (black curves) and their splined time series (red curve). The regions are illustrated by the map in the middle and correspond to the delineation used in IPCC AR5 \citep{ciais13ipcc}, except that ``Eurasia'' is separated into Europe (everything west of 30$^{\circ}$E), and Russia and the Former Soviet Union (FSU) (everything east of 30$^{\circ}$E).}
+\label{fig:fluc.bycont}
+\end{figure}
+
+
+The contribution of land turnover and wood harvest to the total LUC emissions is considerable (Table \ref{tab:hist}). It amounts to 37\% for the pre-1850 period, to 28\% for the period 1850 to 2004 and reaches 38\% during the last decade. These contributions are broadly consistent with earlier estimates \citep{olofssonhickler2008,shevliakova09gbc} and demonstrate that these processes should not be neglected. 
+
+Land turnover and wood harvesting leave a large area of forests affected by and recovering from previous anthropogenic disturbance. Consequently, C pools on natural land are generally smaller in regions where shifting cultivation occurs. This implies larger cumulative net emissions as well as larger gross fluxes (deforestation and regrowth fluxes) between the land and the atmosphere with deforestation. We quantify a ``regrowth''-flux as the amplification of the C fluxes entering the land biosphere (NPP) due to land use change and a ``deforestation'' flux (including the legacy of amplified respiration in response to past land use change) as the land use change-induced amplification of C fluxes leaving the land biosphere (heterotrophic respiration, fire, product decay). These fluxes are 7.4\,GtC/yr (deforestation) and 6.0\,GtC/yr (regrowth) in the standard simulation (mean over 1990-2004 AD), but only 6.2\,GtC/yr (deforestation) and 5.3\,GtC/yr (regrowth) in the simulation where only net land use changes are simulated. Thus, shifting cultivation leads not only to net emissions, but also to an increase in the two-way carbon exchange fluxes between the atmosphere and the land
+\begin{table}
+ \caption[Cumulative LUC emissions and decadal average annual LUC fluxes]{Cumulative LUC emissions (E) and decadal average annual LUC fluxes (e).}
+ \centering
+ \small\sffamily
+ \begin{tabular}{l r r r r r}
+  \hline
+   &			\multicolumn{2}{c}{{\bf E} [GtC]} & \multicolumn{3}{c}{{\bf e} [GtC\,yr$^{-1}$]}\\
+   \cline{2-3} \cline{4-6}
+   &			-1850 &	     1850-2004 &	1980s &	1990s &	2000s \\
+  \hline
+  total           &      71.8 &            171 &         1.55 &  1.57 &    1.21\\
+  primary         &           &            154 &         1.48 &  1.27 &    0.99\\
+  \hline
+  CO$_2$ effect&               &         +20.7 &       +0.357 &+0.409 &   +0.427\\
+  climate effect&              &         -3.59 &       -0.265 &-0.108 &   -0.191\\
+  climate \& CO$_2$&           &         +17.3 &       +0.067 &+0.304 &   +0.216\\
+  \hline
+  wood harvest  &        +7.12 &        +22.8 &        +0.262 & +0.27 &+0.229\\
+  land turnover &        +19.7 &        +24.6 &        +0.211 &+0.259 &+0.234\\
+  \hline
+ \end{tabular}
+  \label{tab:hist}
+\end{table}
+
+Over the industrial period, shifting cultivation and related emissions occurred predominantly in the tropics (see Figure \ref{fig:fluc.hist.map}). There, the expansion of croplands is also much larger (+183\% in the 20th century) compared to regions without shifting cultivation (+74\%). Largest total emissions by LUC are thus simulated in tropical and subtropical regions.
+
+Simulated cumulative harvested biomass is 126 GtC for the period 1500-2005, somewhat below the number suggested by the LUH data (136\,GtC, see also discussion in Section \ref{sec:discussion}). Wood harvest is generally followed by re-growth, and the net effect on the terrestrial C balance is determined by changes in harvest intensity. In our simulations, the effect of wood harvest on land use-related emissions is most pronounced in a few, mostly extra-tropical regions (Figure \ref{fig:fluc.hist.map}b), but generally represents an additional source in all continents, although with differing trends in the source strength over the last decades. While the source has been steadily increasing in Latin America, it shows a slowly declining trend  after 1980 AD in Europe, while the harvest source in Russia is recovering from a temporary, but large decrease in the 1990s.
+%These fluxes are smaller but of the same order of magnitude as a recent estimate of the net uptake by conterminous U.S. forests of 52\,TgC\,yr$^{-1}$, which is not only driven by harvest but by a range of processes \citep{williams12gbc}; larger net uptake estimates are reported by \citet{pan11sci}.
+
+We further distinguish different driving factors by quantifying primary emissions in direct response to land use area and management change from a simulation where CO$_2$ and climate are kept constant, and the indirect effects of changing CO$_2$ and climate in additional runs (Table \ref{tab:hist}, e.g. \citet{strassmann08tel}). Primary emissions explain most but not all of the total LUC emission. The difference between C storage on natural and agricultural land tends to increase under rising CO$_2$ due to its fertilizing effects on trees (``woody thickening''). In contrast, climate warming tends to reduce C storage due to faster soil decomposition and forest decline in some areas and generally reduces the difference between C storage on natural and agricultural land. In our model, the CO$_2$ effect dominates and these indirect effects contribute 24\% to the total emission from 1850 to 2004, in agreement with earlier studies \citep{strassmann08tel}.
+
+\subsubsection*{Projected emissions for the RCP Scenarios}
+Total LUC emissions from 2005 to 2099 range between 27 and 151\,GtC for the four RCPs (Tables \ref{tab:hist} and \ref{tab:rcp}). Total emissions decrease to about 0.5\,GtC/yr by 2100 in RCP 2.6 and RCP 6.0 and become negative in the second half of the century in RCP 4.5 (Figure \ref{fig:fluc.rcp}). In contrast, emissions remain around current levels and are generally above 1\,GtC/yr in RCP 8.5.  Differences are due to different LU area and management trajectories but also due to different evolutions of CO$_2$ and climate. As above, we quantify these different driving factors separately (Table \ref{tab:rcp}).
+\begin{figure}
+\begin{center}
+ \noindent
+ \includegraphics[width=0.8\textwidth]{../fig/fLUC_rcp}
+ \caption[Annual LUC emissions for 1900-2100 and the different RCPs]{Annual LUC emissions for 1900-2100 and the different RCPs. Thick black and colored curves are splined time series of annual data, which is shown in thin solid curves. Dashed and dotted lines represent annual LUC emissions, diagnosed from a simulation without wood harvesting and from a simulation where only net land use change is simulated, respectively.}
+ \label{fig:fluc.rcp}
+\end{center}
+\end{figure}
+
+\begin{figure}
+ \noindent
+ \includegraphics[width=\textwidth]{../fig/map_fLUC_rcp_small}
+ \caption[Spatial distribution of cumulative future (RCPs) LUC emissions and its components]{Spatial distribution of cumulative future (RCPs) LUC emissions and its components. {\it Left:} Total (gross, incl. wood harvest) cumulative LUC emissions in kgC/m$^2$ {\it middle:} Cumulative emissions due to wood harvest. {\it Right:} Effect of land turnover (including the introduction of secondary land) as the difference between the run with gross LU transitions and a run with net LU transitions; both runs do not consider wood harvest. Note the different color scales in the panels.}
+ \label{fig:fluc.rcp.map}
+\end{figure}
+
+Projected primary emissions due to direct changes in LU area and management are 25\,GtC for RCP 4.5, and range between 86 and 122\,GtC for the other RCPs (Table \ref{tab:rcp}). The global cropland area decreases in RCP 4.5 (see e.g. scenario descriptions by \citet{riahi11cc, vanvuuren11cc}) and, correspondingly, relatively low global primary emissions are simulated. However, the spatial pattern of LUC emissions is heterogenous (see Figure \ref{fig:fluc.rcp.map}). In RCP 6.0, croplands increase, but pasture areas decrease. RCP 8.5 and RCP 2.6 both feature an expansion of cropland areas. This is driven by increasing population in RCP 8.5 and by expanding bio-energy production in RCP 2.6. However, these scenarios differ widely with respect to wood harvest, which causes a source of 26\,GtC in RCP 2.6 and of 53\,GtC in RCP 8.5. Land turnover (shifting cultivation) contributes about equally in all scenarios (13-16\,GtC).
+\begin{table}
+ \caption[Impact of atmospheric CO$_2$ and climate on cumulative LUC emissions  for 2005-2099 AD]{Impact of atmospheric CO$_2$ and climate on cumulative LUC emissions (E [GtC]) for 2005-2099 AD.}
+ \centering
+ \small\sffamily
+ \begin{tabular}{l l l l l}
+  \hline
+   &			RCP 2.6 &	RCP 4.5 &	RCP 6.0 &	RCP 8.5 \\
+  \hline
+  total&                    105 &          27.4 &          97.2 &            151\\
+  primary&                   86 &          25.2 &          85.7 &            122\\
+  \hline
+  climate \& CO$_2$&       +19 &        +2 &         +12 &             +29\\
+  \hline
+  harvest&                 +26 &        +37 &         +46 &             +53\\
+  land turnover &            +16 &        +13 &         +13 &             +13\\
+  \hline
+ \end{tabular}
+  \label{tab:rcp}
+\end{table}
+
+CO$_2$ and climate change increase the impact of LU in terms of net emissions (Table \ref{tab:rcp}) in all RCPs and contribute between 8\% and 19\% to total cumulative LUC emissions.
+
+In general, the contribution of wood harvest and shifting cultivation effects on total LUC emissions is considerable for recent decades but increases in magnitude under the future RCP scenarios. Emissions, particularly in RCP 6.0 and RCP 8.5, are underestimated in simulations only accounting for net land use changes and neglecting wood harvest.
+
+\subsubsection*{Generated Land Use Transitions}
+\label{generated}
+Total e$_{\mbox{\scriptsize LU}}$ for LUH exhibit values of around 0.2-0.3\,GtC\,yr$^{-1}$ during the first decades of the transient simulation (after 1500 AD), declining thereafter (see Figure \ref{fig:fluc.hist}). This variation is a simulation artifact and is not related to the rate of expansion of agricultural area, which increases by 0.12-0.19\%\,yr$^{-1}$ between 1500 and 1650 AD without any change in the long-term trend. This points to a shift in the mean C density of deforested land and is not attributable to changes in climate or CO$_2$ as the effect is seen also for primary emissions (not shown). 
+
+In the LUH data, secondary land is zero by design in 1500 AD. In order to comply with land areas as defined in LUH, land abandonment during spin-up re-enters the ``primary'' LU category. The secondary land area starts growing only after 1500 AD. This shift is associated with a change in vegetation C density from areas claimed: 5.9\,kgC/m$^2$ on primary land in 1500 AD (in grid cells with croplands present in 1500 AD), declining to 5.7\,kgC/m$^2$ on primary and 2.6\,kgC/m$^2$ on secondary land in the same areas in 1650 AD. Considering, that e$_{\mbox{\scriptsize LU}}$ is co-determined by the vegetation C density of deforested land and that at the start of the simulation, land is only claimed from the primary land use class (secondary is zero), while land is also claimed from secondary at later points, this implies an according shift in e$_{\mbox{\scriptsize LU}}$. 
+
+The initially anomalously high flux obtained with the LUH data arises thus from the idealized initialization of LUH with no secondary land at 1500 AD; we note that fluxes after around 1650 are hardly affected by this initialization. The method described here as ``generated transitions'' evades such a shift in transition priorities and mean C density as transition rules are fully maintained between spin-up and the transient simulation. Consequently, land claimed from secondary at 1500 AD is similar to 1650 AD and changes are only due to differences in land conversion rates. Also, the mean vegetation C density (on secondary land) shows no abrupt change with generated transitions (4.7\,kgC/m$^2$ in 1500 vs. 5.6\,kgC/m$^2$ in 1650 AD). This implies stable e$_{\mbox{\scriptsize LU}}$ after the spin-up and no anomalously high fluxes occur (see Figure \ref{fig:fluc.hist}). 
+
+We define rules (i) - (iv) for generated transitions (see methods) following \citet{hurtt06gcb} as closely as possible. e$_{\mbox{\scriptsize LU}}$ from generated transitions compare well with e$_{\mbox{\scriptsize LU}}$ from LUH and generally deviate by less than 0.1\,GtC\,yr$^{-1}$ (splined curve). Total cumulative LUC emissions between 1850 and 2004 AD are 165.8\,GtC, 5\,GtC less than in the simulations with prescribed LUH data. 
+
+\subsection*{Discussion and Conclusion}
+\label{sec:discussion}
+The LPX-Bern 1.0, a DGVM simulating the coupled cycling of carbon and nitrogen, was applied to estimate carbon emissions from land use and land use change. Emissions include effects from deforestation and shifting cultivation, legacy fluxes, decay of wood products, lost sinks/sources under changing environmental conditions, and wood and crop harvest both for the past and the future. Simulated emissions do not include contributions from peat burning or degradation, anthropogenic fire suppression, and anthropogenically induced fires not aimed at cropland or pasture expansion.
+
+Simulated cumulative historical (1850-2004 AD) total emissions are 171 GtC (154 GtC primary emissions). This is within, but at the upper end of the range of previous studies \citep{houghton12bg,lequere13essd}; also for decadal mean emissions, here quantified at 1.55, 1.57, and 1.21 GtC/yr for the 1980s, 1990s and 2000-2004 AD. In addition to emissions from net land use change, land turnover (shifting cultivation) and wood harvest have caused a cumulative historical source of 25 and 23 GtC, respectively. The contribution of wood harvest to total LUC emissions is expected to increase under all future scenarios and should thus be accounted for in future estimates of LUC emissions. The contribution of total LUC-related CO$_2$ emissions to total CO$_2$ emissions in 2100 AD, including emissions from fossil fuels, is expected to decrease to $\sim$10\% in the high-CO$_2$ scenario RCP 8.5, but makes up as much as $\sim$30\% in the strong mitigation scenario RCP 2.6.
+
+Only few studies are available that addressed LUC emissions under future RCP scenarios \citep{hurtt11,lawrence12jclim,brovkin13jclim}. However, these report emissions from above-ground biomass \citep{hurtt11}, do not separate the LUC flux from other drivers \citep{lawrence12jclim}, or do not separate effects of wood harvest and land turnover \citep{brovkin13jclim}. This prevents a thorough comparison to results presented here. \citep{brovkin13jclim} report cumulative RCP 8.5 emissions of 25-205 GtC and 19-175 GtC for RCP 2.6. Our results (105 GtC for RCP 2.6 and 151 GtC for RCP 8.5) fall inside this range and are closest to the model which includes effects of wood harvest and land turnover and which suggests the largest emissions. Our emission estimates for the RCPs are compatible with, but generally higher than the values provided by the Integrated Assessment Models \citep{ciais13ipcc}.
+
+Total emissions quantified here rely on simulations with prescribed observed atmospheric CO$_2$ in both simulations with and without LUC. This ignores the fact that observational CO$_2$ carries the signal of actual historical LUC, which stimulated terrestrial C uptake. This negative flux termed ``LU feedback'' by \citet{strassmann08tel} should be assigned to LUC emissions, but is not included here. This issue is common to all DGVM-based LUC estimates relying on results from simulations with prescribed CO$_2$ and climate.
+
+Primary emissions without shifting cultivation and wood harvest reported here are approximately a third lower over historical periods than reported by \citet{stocker11bg}, who used an earlier version of LPX. This reduction is primarily due to the inclusion of C-N interactions and changed decomposition rates of soil carbon pools (as described in \citet{spahni12cpd}, Table 1) in the present study, which leads to a reduction of NPP and C pools on natural land particularly in the extra-tropics, where pools have been systematically overestimated in the previous version \citep{stocker11bg}. LPX models biomass before and after deforestation internally and emissions may be biased towards model deficiencies w.r.t. C storage \citep{stocker11bg}. The difference between C storage on natural and agricultural land - a measure for LUC emissions per unit area - is reduced by $\sim$30\% compared to \citet{stocker11bg}. Higher emissions due to land turnover and forest management partially cancel the reduction associated with C-N interactions. Finally, pre-industrial primary emissions are only slightly higher than reported by \citet{stocker11bg}. Effects of accelerated soil turnover due to tillage and crop harvest are simulated and lead to higher emissions compared to, for example, \citet{pongratz09}.
+
+LUC emissions scale with the C density of deforested vegetation. LPX suggests a global total vegetation C stock of 492 GtC in 1500 AD, declining to 316 GtC by 2005 AD. Observation-based global estimates are somewhat higher (466$-$654 GtC for present-day, \citet{prentice01ipcc}), but simulated vegetation C density in areas affected by LUC compares well with observations (see Figure \ref{fig:vegc}).
+\begin{figure}
+\begin{center}
+ \noindent
+ \includegraphics[width=0.8\textwidth]{../fig/vegc_benchmark_regrid_map_mod_combined}
+ \caption[Simulated and observational vegetation carbon density]{Simulated (map) and observational (dots) vegetation carbon density (gC/m$^2$). The map represents total vegetation C density in the primary land use class at present day, diagnosed from a simulation without any anthropogenic LUC and wood harvest. Observational data are from \citet{luyssaert07gcb} and \citet{keith09pnas} and also represent primary forests.}
+ \label{fig:vegc}
+\end{center}
+\end{figure}
+
+Also the harvested forest {\it area} is determined by vegetation C density, as the LUH input data used here is given on a mass basis. Thus, inconsistencies may arise when the simulated total vegetation C is too small and cannot satisfy the required harvested mass in the respective gridcell, or when prescribed harvest-related wood extraction rates exceeds the simulated annual regrowth (sustainable yield). These effects explain the slight mismatch between prescribed harvest C mass (cumulatively 136\,GtC) and the actually simulated harvested C mass (126\,GtC). We assessed alternative implementations of wood harvest in the model. Using LUH harvest data on an area basis, where the harvested mass is ``translated'' into areas by \citet{hurtt06gcb} using their vegetation model, evades such effects but leads to lower cumulative wood harvest in combination with LPX (83\,GtC, not shown) due to differences in simulated vegetation C density in the two models. Different implementations of wood harvesting imply differences in total LUC emissions on the order of $\pm$5\% of the numbers reported here.
+
+Deforestation due to land conversion is not counted towards fulfilling harvest statistics. This may bias simulated emissions towards high values. We assessed this effect in separate simulations by using deforested (felled) biomass of cropland and pasture expansion to satisfy wood harvest in the respective gridcell (not show). However, this effect is small, partly because of the spatial mismatch between areas of agricultural expansions and areas with substantial wood harvesting.
+
+A further aspect that may bias LUC emissions high is that open grasslands are not preferentially claimed for pasture expansion. Here, transitions between land use categories are independent of the dynamically simulated vegetation distribution. This guarantees consistency with the original LUH data and is in contrast to the approach followed by \citet{reick2013} where transitions are formulated with respect to the  vegetation cover area.
+
+The LUH data are based on the HYDE reconstruction \citep{kleingoldewijk2011geb}, where a constant per-capita land requirement is assumed to back-project LU areas before census data became available. \citet{kaplan11} argue that per-capita land requirements were higher at earlier times, but their land use data do not cover the industrial period. The use of the LUH data likely leads to a low bias in preindustrial emissions and a correspondingly high bias in emissions during the industrial period as any land use history has to converge to the current land use distribution.
+
+We presented a new method to consistently add land turnover and wood harvest to any sequence of static land use maps. Our approach avoids potential problems with model initialization and can easily include spatio-temporal variations in the land turnover rate. This will permit complementing existing land use reconstructions over the Holocene \citep{kleingoldewijk2011geb, kaplan11, pongratz09} and may be useful for Monte-Carlo type simulations with a probabilistic exploration of land use reconstruction uncertainties.
+
+Our results indicate that the quantification of land use and land use change including land turnover and wood harvesting is important to establish the carbon balance over the industrial period and to establish the budget of allowable carbon emissions in order to stabilize atmospheric CO$_2$ and to slow climate change.  
+
+%%% End of body of article:
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Optional Appendix goes here
+%
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %
+% %  ACKNOWLEDGMENTS
+
+% \begin{acknowledgments}
+% This study received support by the Swiss National Science Foundation through the NCCR Climate and the Sinergia project iTree as well as by the European Commission through the FP7 projects Past4Future (grant no. 243908).
+% \end{acknowledgments}
+
+
+\clearpage
+
+
+
+% \section{Afterword}
+
+% First, I will add a brief documentation of problems encountered with the data:
+% \begin{itemize}
+% \item Inconsistency between states and transitions in original data and how it is corrected to be make consistent (approach in new read\_landuse\_map subourtine).	
+% \item Implementation of wood harvest: different options, what happens to vegetation
+% \end{itemize}
+
+% Then, I will add the discussion about how to quantify land use change emissions: the decomposition of the flux into its components: primary, replaced sources/sinks, and the feedback flux. Here, I can use the stuff I wrote for the open-discussion review of the Gasser \& Ciais, 2013 paper. 
+
+\section{Supplementary Information: Wood harvest implementation}
+\label{sec:harvest}
+Wood harvest is implemented in LPX so that the harvested biomass carbon is read in as an input and the harvested gridcell area fraction is calculated online based on the simulated vegetation carbon density in LPX. As mentioned in the manuscript (Section \ref{sec:lutrans.article}), this may cause the prescribed required wood harvest not being fully satisfied by available vegetation C. LUH harvested biomass data is provided in units of MgC as the ``woody biomass harvested from mature secondary (young secondary, primary, primary non-forested, and secondary non-forested) forested land'' \citep{luh}. In LPX, secondary and primary land are distinguished, but not their age classes (mature secondary vs. young secondary), nor are forested and non-forested lands explicitly separated. Thus, there is room for interpretation of how to best implement wood harvest in LPX. I explored different options and investigated in particular the effect on whether the required harvested biomass C can be met and quantified the total land use emissions under the different harvest implementations. The different options are presented in Table \ref{tab:harvest}.\\
+
+\begin{table}
+\centering
+\small\sffamily
+\begin{tabular}{l|cccc}
+\tophline
+name		&mortality	&cpexpansion		&byarea		&oldgrowth	\\
+\middlehline
+h2		&			&				&			&			\\
+h3		&\cmark			&				&			&			\\
+h4		&			&				&			&\cmark			\\
+h5		&			&				&\cmark			&			\\
+h6		&			&\cmark				&			&			\\
+\bottomhline
+\end{tabular}
+\vskip4mm
+\caption[Simulation names of alternative harvest implementations]{Simulation names of alternative harvest implementations and their LPX pre-compiler flag combination. Blank cells denote the flag being turned off. \cmark means that the flag is turned on. 'mortality' refers to whether biomass turnover from natural mortality is counted towards wood harvest and removed from the litter and diverted to the product pools. 'cpexpansion' refers to whether felled biomass in the course of cropland and pasture expansion is counted towards wood harvest. 'byarea' refers to whether input data on the basis of harvested area (instead of harvested mass) is read in. 'oldgrowth' refers to whether data for harvest on non-forested primary, and non-forested and young secondary is ignored, and only biomass from tree PFTs (not grass PFTs) is counted towards wood harvest.}
+\label{tab:harvest}
+\end{table}
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=\textwidth]{../fig/harvest_tseries.pdf}
+\end{center}
+  \caption[Time series of annual and cumulative harvested biomass for different wood harvest implementations]{Left: Annual global harvested biomass (GtC/yr). Right: Cumulative globel harvested biomass (GtC). The harvested mass prescribed from the data is not fully met in neither of the options.}
+\label{fig:harvest_tseries}
+\end{figure}
+
+The data shown in the article (Section \ref{sec:lutrans.article}) is based on option h2, where harvest on primary (sum of mature and non-forested) and on secondary land (sum of mature, young and non-forested) are satisfied by counting all available biomass C in the respective land use class (leaf, sapwood, heartwood, and roots from all PFTs, including grass PFTs) towards required harvest. If harvest on primary land cannot be fully met, secondary land is harvested to account for the remainder, and vice versa. If unmet harvest still remains, it is left unmet (instead of harvesting neighbouring gridcells). Figure \ref{fig:harvest_tseries} illustrates the harvested biomass C in the prescribed data, in comparison with the actual simulated harvested biomass C. Figure \ref{fig:fluc.harvest} presents the total land use change emissions based on simulations with different harvest implementations.\\
+
+\begin{figure}[ht!]
+  \includegraphics[width=\textwidth]{../fig/fLUC_harvestalternatives_final.pdf}
+  \caption[Land use emissions time series for different wood harvest implementations]{Land use change flux (left) and cumulative emissions (right) for the simulation with land use transitions and harvest (run\_3A) with different implementations of wood harvest.}
+\label{fig:fluc.harvest}
+\end{figure}
+
+Our experience with the implementation of wood harvest in a DGVM made it evident that such an approach has limitations when simulated C density and simulated regrowth rates are not consistent with the wood harvest data. Originally, wood harvest data is provided by FAO for the mass of roundwood removals by country. Different steps of data processing are applied to translate the FAO data to spatial datasets as provided by the Land Use Harmonisation project (LUH) \citep{hurtt06gcb} . These steps involve the mapping of country-total harvested mass to forested areas, or - more precisely - to primary and secondary old-growth, young and non-forested areas. Such a mapping is done on the basis of a model's prediction of forested areas. Difficulties may arise when the forested area in the model where the harvest data is applied (here LPX) is significantly different.\\
+
+Also, difficulties arise, when the rate of harvest biomass removals exceeds the internally (here by LPX) simulated regrowth rate (sustainable yield). In such a case, harvest results in a steady decline of vegetation C density over time and a resulting increase in the harvested area necessary to satisfy a constant annual harvested mass.\\
+
+The uncertainty associated with different wood harvest implementations implies an uncertainty of total land use change emissions of around $\pm$10\%. Relying on prescribed harvested {\it area} evades problems related with the exceedance of the sustainable yield, but actually harvested biomass is then $\sim$20\% lower than suggested by the mass-based data. Still, such an approach is conceptually more robust for applications in DGVMs and I thus recommend area-based wood harvest implementations for future modeling efforts.
+
+\section{Supplementary information: Conversion of Land Use Areas}
+\label{app1}
+
+This section is adopted from the original work by F. Feissli and describes the conversion of soil, vegetation, litter, and product carbon pools. In any grid cell, the soil C content associated with a LU category $k$ is $S_k^t = s_k^t A_k^t$, where $s_k^t$ is the soil C density. For LU transitions between time $t$ and $t+1$, $s_k$ is updated as
+\begin{equation}
+ s_k^{t+1}= \frac{1}{A_k^{t+1}} \left(s_k^t A_k^t + \sum_l \left(s_l^t \Delta A_{lk}^t - s_k^t \Delta A_{kl}^t\right)\right), 
+\end{equation}
+\noindent
+where $l$ runs over all LU categories. Thus, soil C is re-averaged over the changed LU areas. For vegetation C, $v_i^t$ is the mass per plant individual of PFT $i$. Vegetation C is removed from converted areas. For grasses and mosses, LU transitions are modeled as
+\begin{equation}
+ v_i^{t+1}= \sum_k \frac{\zeta_{ik}}{A_{k}^{t+1}} v_i^t \left(A_k^t - \sum_l \Delta A_{kl}^t \right),
+\label{eq:vegcdistr}
+\end{equation}
+\noindent
+where $\zeta_{ik}$  is one if PFT $i$ is in LU category $k$ and zero otherwise. For trees, the vegetation C content per individual is unaffected by LU change but the density of individuals $N_i$ is modified:
+\begin{equation}
+ N_i^{t+1}= \sum_k \frac{\zeta_{ik}}{A_{k}^{t+1}} N_i^t \left(A_{k}^t - \sum_l\Delta A_{kl}^t\right).
+\label{eq:ninddistr}
+\end{equation}
+Removed vegetation enters litter and product pools. Litter $l_i^{t}$ is associated with the PFT of the plant it derives from, while products are associated with LU categories. Distribution of fresh litter, along with the redistribution of old litter is calculated as
+\begin{eqnarray}
+  l_i^{t+1} = \sum_k  \frac{\zeta_{ik}}{A_{k}^{t+1}}\left( l_i^t \left(A_k^t - \sum_l \Delta A_{kl}^t \right) \right. \nonumber \\
+  +\sum_j \sum_l \rho_{ij} \left(v_j^t+l_j^t\right)  \zeta_{jl} \Delta A_{lk}^t \nonumber \\
+  +\left.\sum_j \left(\sum_{\hat{i}}\rho_{\hat{i}j}\zeta_{\hat{i}k}-1 \right)^2 \sum_l \frac{v_j^t+l_j^t}{N_{\mbox{\tiny PFT},{k}}} \zeta_{jl} \Delta A_{lk}^t  \right).
+\label{eq:litterdistr}
+\end{eqnarray}
+\noindent
+where $\rho_{\hat{i}j}$ is one if PFTs $\hat{i}$ and $j$ are ``related'', meaning biologically identical PFTs associated to different LU categories. For unrelated PFT pairs, $\rho_{ij}$ is zero. The right hand side terms of equation (\ref{eq:litterdistr}) describe, from left to right, change of litter content in analogy to equations (\ref{eq:vegcdistr}, \ref{eq:ninddistr}), litter and vegetation input from related PFTs, and litter input from unrelated PFTs. The latter is distributed among all the PFTs of the respective LU category ($N_{\mbox{\scriptsize PFT},k}$ is the number of PFTs in $k$).\\
+Equation (\ref{eq:litterdistr}) applies to leaf and root plant parts, while heartwood and sapwood is not transferred to litter pools but to product pools. Product pools only exist for the LU categories primary and secondary natural land. Carbon entering a product pool is not affected by any further LU transitions and is released to the atmosphere according to product pool-specific decay times (0, 2, and 20 years). The fractional distribution to the different product pools depends on the origin of the wood.
+
+
+
+\section{A mathematical formalism for the definition of land use change emissions and its component fluxes}
+\label{sec:lucdef}
+The simulations presented in Section \ref{sec:lutrans.article} are based on simulations where the land model LPX was used offline, that is, not coupled to an ocean and atmosphere model. In such a setup, atmospheric \coo\ concentrations and climate are commonly prescribed from observations (and from GCM model outputs for future scenarios). This simplifies the required model framework, reduces the computational costs and is widely applied for quantifications of anthropogenic land use emissions using DGVMs \citep{cramer01gcb,sitch2008gcb,lequere13essd}. In this approach, cumulative land use emissions E$'_{\text{LU}}$ are quantified as the difference of the terrestrial C balance in a simulation with land use ($\Delta C_{\mathrm{LUC}}$) and a simulations without ($\Delta C_{\mathrm{no LUC}}$):
+\begin{equation}
+E'_{\text{LU}} = \Delta C_{\mathrm{no LUC}} - \Delta C_{\mathrm{LUC}}\,.
+\end{equation}
+In this notation, the applied land use forcing is declared by the subscript. Let's declare the forcings acting upon atmospheric \coo\ and climate in the superscript. By the design of the setup, \coo\ and climate is prescribed from observations, and thus carries the impact of all anthropogenic forcings (including LUC) in both simulations. We would thus write
+\begin{equation}
+E'_{\text{LU}} = \Delta C^{\mathrm{FF+LUC}}_{\mathrm{LUC}} - \Delta C^{\mathrm{FF+LUC}}_{\mathrm{no LUC}}\,.
+\label{eq:fluc.dgvms}
+\end{equation}
+$\mathrm{FF+LUC}$ means that presribed \coo\ and climate is the results of LUC and forcings by fossil fuel (FF) emissions. FF shall include also all other anthropogenically affected climate forcing agents (aerosol, non-\coo\ GHGs, ozone, etc.). Equation \ref{eq:fluc.dgvms} already illustrates the inconsistency of this definition: The simulation without the land use forcing still carries effects of LUC in its \coo\ and climate. When asking about the effect of anthropogenic LUC on the terrestrial C storage, the reference should be a case where LUC is not ``happening'' and also does not affect \coo\ and climate:
+\begin{equation}
+E_{\text{LU}} = \Delta C^{\mathrm{FF+LUC}}_{\mathrm{LUC}} - \Delta C^{\mathrm{FF}}_{\mathrm{no LUC}}\,.
+\label{eq:fluc}
+\end{equation}
+As defined above, $E_{\text{LU}}$ will be negative for the historical period, and $\Delta C^{\mathrm{FF+LUC}}_{\mathrm{no LUC}} > \Delta C^{\mathrm{FF}}_{\mathrm{no LUC}}$, due to the additional fertilising effects on terrestrial C storage in response to LUC-induced elevated \coo\ levels \citep{strassmann08tel}. Thus, in terms of absolute values, $|E'_{\text{LU}}|>|E_{\text{LU}}|$. In the following, a rigorous separation of flux components shall serve a more intuitive illustration and the embedding into the definition frameworks outlined by \citep{strassmann08tel} and \citet{gasserciais13}.\\
+
+\subsubsection{Formalism for a unit land area}
+Consider a unit land area (not the total terrestrial C balance as above) which is fully converted from natural to agricultural land at time $t=0$. In a world with LUC, the C storage on (now agricultural) land is $C^{\star\,\mathrm{FF+LUC}}_{\mathrm{agr}}$ (the star denoting equilibrium). Again, the superscripts denote what drivers to environmental change (\coo , climate, etc) are acting in the two worlds. In a world that has {\it not} been affected by LUC, but is affected by higher \coo\ levels due to FF emissions, the unit C storage consequently is $C^{\star\,\mathrm{FF}}_{\mathrm{nat}}$. The cumulative emissions of the unit land caused by the LUC disturbance can be quantified as
+\begin{equation}
+\Delta C^{\star}=C^{\star\,\mathrm{FF}}_{\mathrm{nat}} - C^{\star\,\mathrm{FF+LUC}}_{\mathrm{agr}}
+\end{equation}
+Both terms on the right-hand-side can be expressed as the sum of the preindustrial equilibrium storage plus the cumulative sink/source flux due to the indirect effects of FF emissions (and LUC).
+\begin{align}
+C^{\star\,\mathrm{FF}}_{\mathrm{nat}} &= C^{\star\,0}_{\mathrm{nat}}+\int_{0}^{\infty} f^{\mathrm{FF}}_{t'}dt' = C^{\star\,0}_{\mathrm{nat}}+\Delta C^{\star\,\mathrm{FF}}_{\mathrm{nat}}\\
+C^{\star\,\mathrm{FF+LUC}}_{\mathrm{agr}} &= C^{\star\,0}_{\mathrm{agr}}+\int_{0}^{\infty} f^{\mathrm{FF}}_{t'}+f^{\mathrm{LUC}}_{t'}dt' = C^{\star\,0}_{\mathrm{agr}}+\Delta C^{\star\,\mathrm{FF}}_{\mathrm{agr}}+\Delta C^{\star\,\mathrm{LUC}}_{\mathrm{agr}}
+\end{align}
+Combining above equations and re-arranging the terms illustrates different fluxes:
+\begin{equation}
+\Delta C^{\star} = 
+\underbrace{C^{\star\,0}_{\mathrm{nat}} - C^{\star\,0}_{\mathrm{agr}} }_\text{primary}
++ \underbrace{\Delta C^{\star\,\mathrm{FF}}_{\mathrm{nat}} - \Delta C^{\star\,\mathrm{FF}}_{\mathrm{agr}}  }_\text{"lost FF-fert. sinks"}
+- \underbrace{\Delta C^{\star\,\mathrm{LUC}}_{\mathrm{agr}}  }_\text{"LUC-fert. feedback"}
+\label{eq:components}
+\end{equation}
+Primary LUC emissions ($C^{\star\,0}_{\mathrm{nat}} - C^{\star\,0}_{\mathrm{agr}} $) are diagnosed before any feedbacks ocurr and can be quantified from simulations, where \coo\ and climate are held at constant (e.g., preindustrial) levels. These have been termed ``book-keeping'' in \citep{strassmann08tel} or ``ELUC$_0$'' in \citet{gasserciais13}. The other component fluxes (lost FF-fert. sinks) and (LUC-feedback flux) are termed as in \citep{strassmann08tel}.\\
+
+By not discriminating the perturbation that is due to FF from what is due to LUC, emissions due to LUC are quantified (analogous to Equation \ref{eq:fluc.dgvms}) as
+\begin{equation}
+\Delta C'^{\star}=C^{\star\,\mathrm{FF+LUC}}_{\mathrm{nat}} - C^{\star\,\mathrm{FF+LUC}}_{\mathrm{agr}}
+\end{equation}
+Expanding the components as above yields
+\begin{equation}
+\Delta C'^{\star} = 
+C^{\star\,0}_{\mathrm{nat}} - C^{\star\,0}_{\mathrm{agr}} 
++ \Delta C^{\star\,\mathrm{FF}}_{\mathrm{nat}} - \Delta C^{\star\,\mathrm{FF}}_{\mathrm{agr}}
+- \Delta C^{\star\,\mathrm{LUC}}_{\mathrm{agr}} + \underbrace{ \Delta C^{\star\,\mathrm{LUC}}_{\mathrm{nat}} }_\text{additional term}
+\label{eq:componentswrong}
+\end{equation}
+The right-most term does not appear in Equation \ref{eq:components}. For a historical simulation, it will be positive, the flux $\Delta C^{\star}$ derived from Equation \ref{eq:componentswrong} will thus be higher than in Equation \ref{eq:components} where the perturbations caused by LUC and FF are rigorously separated.\\
+
+\subsubsection{Extended formalism}
+The formalism presented above is defined for a unit land area fully transitioning from natural to agricultural land and served as an illustration. \citep{gasserciais13} present an extended formalism to account for parallel fluxes on land affected by LUC at different points in the past and land not directly affected by land conversion (only via climate and \coo ). This shall serve here as a more explicit definition of the relevant fluxes, with a clear relation to how these are defined in a DGVM modeling context. \\
+
+ Similar as above, a superscript denotes the sort of environmental condition the fluxes are affected by; and subscripts for the type of land where the flux is ocurring. E.g., $f^0_{\mathrm{nat}}$ is the flux on natural land that would occur under preindustrial conditions, while $\Delta f^{\mathrm{FF+LUC}}_{\mathrm{nat}}$ is change of that flux in response to higher \coo , altered climate, etc. caused by FF and LUC. The $F$s are then the integral of the area-specific fluxes $f$ over the area $A$. We only differentiate between fluxes on natural $f_{\mathrm{nat}}$ and fluxes on agricultural $f_{\mathrm{agr}}$ (including croplands and pastures) land. For simplicity, we assume that C storage was at equilibrium (no net fluxes) at pre-industrial, and that the agricultural area was zero at pre-industrial.\\
+
+Analogous to the definition in Equation \ref{eq:fluc}, the total flux due to LUC can be quantified as the difference between the flux in a world where only the FF perturbatin is acting, and a world where the FF perturbation and LUC, including their (indirect) effects on \coo /climate, are acting.
+\begin{equation}
+F_{\mathrm{LUC}} = F^{\mathrm{FF+LUC}} - F^{\mathrm{FF}}
+\label{eq:fluc.gc}
+\end{equation}
+
+\noindent The total flux in the FF-only world is
+\begin{equation}
+F^{\mathrm{FF}} = \Delta f^{\mathrm{FF}}_{\mathrm{nat}}\; A_0 \; \,
+\end{equation}
+while the total flux in the FF+LUC world is
+\begin{equation}
+F^{\mathrm{FF+LUC}} =  \underbrace{\Delta f^{\mathrm{FF+LUC}}_{\mathrm{nat}}\; (A_0 - \Delta A^-)}_{\text{undisturbed lands}} + \underbrace{(\mathbf{f^0} + \mathbf{\Delta f^{\mathrm{FF+LUC}}}) \bullet \mathbf{\delta A^+}}_{\text{disturbed lands}}
+\label{eq:totalflux}
+\end{equation}
+A$_0$ is the natural land area at preindustrial, and $\Delta A^-$ is the total area that has transitioned from natural to agricultural (including abandoned land) up to the point in time of interest. $\mathbf{\delta A^+}$ is a vector of land areas (cohorts) that have transitioned from natural to agricultural land; $\mathbf{f^0}$ is a vector containing the net fluxes ocurring in these cohorts (after their conversion) under pre-industrial conditions, and $\mathbf{\Delta f^{\mathrm{FF+LUC}}}$ is the perturbation of these fluxes as a result of \coo\ and climate changes since pre-industrial.\\
+
+With Equation \ref{eq:fluc.gc} and $\Delta f^{\mathrm{FF+LUC}} = \Delta f^{\mathrm{FF}} + \Delta f^{\mathrm{LUC}}$ the flux due to land use change $F_{\mathrm{LUC}}$ becomes
+\begin{align}
+F_{\mathrm{LUC}} &= \Delta f^{\mathrm{LUC}}_{\mathrm{nat}}A_0 - \Delta f^{\mathrm{FF}}_{\mathrm{nat}}\Delta A^- - \Delta f^{\mathrm{LUC}}_{\mathrm{nat}}\Delta A^-\\
+& + \mathbf{f^0}\bullet \mathbf{\delta A^+}\\
+& + \mathbf{\Delta f^{\mathrm{FF}}}\bullet \mathbf{\delta A^+} + \mathbf{\Delta f^{\mathrm{LUC}}}\bullet \mathbf{\delta A^+}
+\end{align}
+Analogously to Equation \ref{eq:fluc.dgvms} the LUC flux commonly quantified from offline DGVM simulations is 
+\begin{align}
+F'_{\mathrm{LUC}} &= - \Delta f^{\mathrm{FF}}_{\mathrm{nat}}\Delta A^- - \Delta f^{\mathrm{LUC}}_{\mathrm{nat}}\Delta A^-\\
+& + \mathbf{f^0}\bullet \mathbf{\delta^+}\\
+& + \mathbf{\Delta f^{\mathrm{FF}}}\bullet \mathbf{\delta A^+} + \mathbf{\Delta f^{\mathrm{LUC}}}\bullet \mathbf{\delta A^+}
+\end{align}
+The difference between the two quantifications is $F_{\mathrm{LUC}} - F'_{\mathrm{LUC}} = \Delta f^{\mathrm{LUC}}_{\mathrm{nat}}A_0$, analogous to $\Delta C^{\star\,\mathrm{LUC}}_{\mathrm{nat}}$ in Eq.\ref{eq:componentswrong}. In other words, the difference is equal to the flux ocurring on natural land in response to the \coo\ and climate perturbation caused by LUC since pre-industrial.\\
+
+Using this formalism, we can intuitively motivate the distinction between different flux components.\\
+
+\noindent {\textsf{The Replaced sinks/sources flux}} $F_{\mathrm{RSS}}$ could be written as the difference of actual sinks induced by FF emissions (not including LUC emissions!) minus the potential sinks if ecosystems had not been converted. Note that $\Delta A^+ = \Delta A^-$.
+\begin{equation}
+F_{\mathrm{RSS}} = \underbrace{(A_0-\Delta A^-)\;\Delta f_{\mathrm{nat}}^{\mathrm{FF}} + \Delta A^+\;\Delta f_{\mathrm{agr}}^{\mathrm{FF}}  }_{\text{actual sinks induced by FF emissions}}  -  \underbrace{  A_0\;\Delta f_{\mathrm{nat}}^{\mathrm{FF}}  }_{\text{potential sinks}} = \Delta A^+ \Delta f_{\text{agr}}^{\text{FF}} -  \Delta A^- \Delta f_{\text{nat}}^{\text{FF}}
+\end{equation}
+
+\noindent {\textsf{The LUC-feedback flux}} $F_{\mathrm{LUC-FB}}$ could be written as the flux that is actually ocurring and that is a result of the LUC-induced \coo\ increase and climate change.
+\begin{equation}
+F_{\mathrm{LUC-FB}} = (A_0-\Delta A^-)\;\Delta f_{\mathrm{nat}}^{\mathrm{LUC}} + \Delta A^+\;\Delta f_{\mathrm{agr}}^{\mathrm{LUC}}
+\end{equation}
+
+\noindent {\textsf{The primary LUC flux}} $F^0_{\text{LUC}}$ is
+\begin{equation}
+F^0_{\mathrm{LUC}} = \mathbf{f}^{0} \bullet \mathbf{ \delta A^+}
+\end{equation}
+
+We can now write the total flux on natural (undisturbed) and agricultural (disturbed) land:
+\begin{equation}
+F = \underbrace{\Delta f^{\text{FF+LUC}}_{\text{nat}} (A_0 - \Delta A^-)}_{\text{undisturbed lands}} 
+  + \underbrace{(\mathbf{f}^0 + \mathbf{\Delta f}^{\text{FF+LUC}} ) \bullet  \mathbf{\delta A^{+}} }_{\text{disturbed lands}}   \;\,
+\label{eq:totalflux}
+\end{equation}
+Now, we add $\Delta f^{\text{FF+LUC}}_{\text{agr}} \Delta A^+$ to the left term and substract $\mathbf{\Delta f^{\text{FF+LUC}}_{\text{agr}}} \bullet  \mathbf{\delta A^{+}}$ from the right term, noting that $\Delta f^{\text{FF+LUC}}_{\text{agr}} \Delta A^+ = \mathbf{\Delta f^{\text{FF+LUC}}_{\text{agr}}} \bullet  \mathbf{\delta A^{+}}$. Equation \ref{eq:totalflux} can then be re-arranged and with $\Delta f^{\mathrm{FF+LUC}} = \Delta f^{\mathrm{FF}} + \Delta f^{\mathrm{LUC}}$ re-written as the sum of primary LUC emissions, replaced sinks/sources, and the LUC feedback flux.
+\begin{align}
+F &= A_0 \; \Delta f^{\text{FF}}_{\text{nat}} &(\text{potential FF-sink})\\
+  &+ \Delta A^+ \Delta f_{\text{agr}}^{\text{FF}} -  \Delta A^- \Delta f_{\text{nat}}^{\text{FF}} &(F_{\mathrm{RSS}})\\
+  &+ (A_0-\Delta A^-)\;\Delta f^{\text{LUC}}_{\text{nat}} + \Delta f^{\text{LUC}}_{\text{agr}} \Delta A^+ &(F_{\mathrm{LUC-FB}})\\
+  &+ \mathbf{f}^0\bullet \mathbf{\delta A^+} &(F^0_{\mathrm{LUC}})
+\end{align}
+
+\subsubsection{Model setups}
+\label{sec:lucdef.setups}
+The three flux components $F^0_{\mathrm{LUC}}, F_{\mathrm{RSS}}, F_{\mathrm{LUC-FB}}$ and the potential FF-sink $A_0 \; \Delta f^{\text{FF}}_{\text{nat}}$ can be separated using the four following emission-driven model setups:
+\begin{enumerate}
+\item A run where fossil fuel emissions are prescribed but without LUC: \\$F_0^{\text{FF}} = A_0 \; \Delta f^{\text{FF}}_{\text{nat}}$
+\item A complete run with prescribed fossil fuel emissions and LUC: \\$F_{\text{LUC}}^{\text{FF+LUC}} = (\Delta f^{\text{FF}}_{\text{nat}} + \Delta f^{\text{LUC}}_{\text{nat}}) (A_0 - \Delta A^-) + \mathbf{f}^0 \bullet  \mathbf{\delta A^{+}} + (\mathbf{\Delta f}^{\text{FF}} + \mathbf{\Delta f}^{\text{LUC}}) \bullet  \mathbf{\delta A^{+}} $
+\item A run with LUC but where the land does {\it not} ``see'' any changes in climate and \coo (no fossil fuel emissions):\\$F_{\text{LUC}}^0 = \mathbf{f}^0 \bullet  \mathbf{\delta A^{+}}$
+\item A run with LUC where the land ``sees'' resulting changes in climate and \coo (no fossil fuel emissions):\\$F_{\text{LUC}}^{\text{LUC}} =  \Delta f^{\text{LUC}}_{\text{nat}} (A_0 - \Delta A^-) + \mathbf{f}^0 \bullet  \mathbf{\delta A^{+}} + \mathbf{\Delta f}^{\text{LUC}} \bullet  \mathbf{\delta A^{+}}$
+\end{enumerate}
+The replaced sinks/sources flux component can then be calculated as 
+\begin{equation}
+F_{\mathrm{RSS}} = F_{\text{LUC}}^{\text{FF+LUC}} - F_{\text{LUC}}^{\text{LUC}} - F_0^{\text{FF}}\,.
+\label{eq:frss.setup}
+\end{equation}
+The LUC-feedback flux turns out to
+\begin{equation}
+F_{\mathrm{LUC-FB}} = F_{\text{LUC}}^{\text{LUC}} - F_{\text{LUC}}^0\,.
+\label{eq:flucfb.setup}
+\end{equation}
+Obviously, $F_0^{\text{FF}}$ and $F^0_{\mathrm{LUC}}$ can directly be assessed from the respective simulations. Using Equations \ref{eq:frss.setup}, and \ref{eq:flucfb.setup}, one can verify that the total flux in $F_{\text{LUC}}^{\text{FF+LUC}} = F_0^{\text{FF}} + F_{\text{LUC}}^0 + F_{\mathrm{RSS}} + F_{\mathrm{LUC-FB}}$.
+
+\subsubsection{Discussion and conclusion}
+Note, that \citet{strassmann08tel} use a slightly different definition of $F_{\mathrm{RSS}}$ and $F_{\mathrm{LUC-FB}}$. In their framework (their Equation 5), the rightmost term in above definition of $F_{\mathrm{LUC-FB}}$ is counted towards $F_{\mathrm{RSS}}$, giving the following separation of component fluxes:
+\begin{align}
+F &= A_0 \; \Delta f^{\text{FF}}_{\text{nat}} &(\text{potential FF-sink})\\
+  &+ \Delta A^+ \Delta f_{\text{agr}}^{\text{FF}} -  \Delta A^- \Delta f_{\text{nat}}^{\text{FF}} + \Delta f^{\text{LUC}}_{\text{agr}} \Delta A^+ &(F_{\mathrm{RSS}})\\
+  &+ (A_0-\Delta A^-)\;\Delta f^{\text{LUC}}_{\text{nat}}  &(F_{\mathrm{LUC-FB}})\\
+  &+ \mathbf{f}^0\bullet \mathbf{\delta A^+} &(F^0_{\mathrm{LUC}})
+\end{align}
+\citet{strassmann08tel} calculate that $F_{\mathrm{LUC-FB}}$ reduces primary emissions $F^0_{\mathrm{LUC}}$ by 19\% over the historical period, while $F_{\mathrm{RSS}}$ amplify $F^0_{\mathrm{LUC}}$ by 5\%.\\
+
+\citet{pongratz09} and \citet{stocker11bg} used the same setup to quantify historical ``primary'' and ``net'' emissions based on emission-driven simulations without accounting for fossil fuel emissions: 
+\begin{align}
+F_{\text{net}}    &= F_{\text{LUC}}^{\text{LUC}}\\
+F_{\text{primary}} &= F_{\text{LUC}}^0
+\end{align}
+Using definitions outlined in Section \ref{sec:lucdef.setups}, reveals that the difference $F_{\text{net}} - F_{\text{primary}}$ is equal to $F_{\mathrm{LUC-FB}}$ and is on the order of 32\% \citep{stocker11bg} to 40\% \citep{pongratz09} of primary emissions. The additional term responsible for the inconsistency between different land use emission quantifications as pointed out in Equation \ref{eq:componentswrong} is $f^{\mathrm{LUC}}_{\mathrm{nat}}\cdot A_0$, thus even larger than $F_{\mathrm{LUC-FB}}$. However, $F_{\mathrm{LUC-FB}}$ was derived in \citet{pongratz09} and \citet{stocker11bg} from simulations without fossil fuel emissions and consequently under a relatively low background atmospheric \coo . Due to the non-linearity of effects, $F_{\mathrm{LUC-FB}}$ would be smaller in a simulation with fossil fuel emissions. This non-linearity is also reflected in Figure \ref{fig:betagamma}, showing that neither $\beta$ nor $\gamma$ are constant over the entire respective \coo\ or climate domain. Still, the argument outlined above illustrates the importance of a consistent framework for how ``land use emissions'' are to be defined in a modeling context. Future simulations conducted with the coupled Bern3D-LPX or the BernCC-LPX could aim at quantifying the inconsistency term $f^{\mathrm{LUC}}_{\mathrm{nat}}\,A_0$ and demonstrate the discrepancies between different land use emission quantifications presented in the literature more comprehensively as has been done in \citet{gasserciais13}.  

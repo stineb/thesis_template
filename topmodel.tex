@@ -1,0 +1,457 @@
+\chapter{A dynamic wetland and peatland model}
+\label{sec:topmodel}
+
+This chapter contains the description of a model to dynamically simulate the extent of wetlands and peatlands. Model parameters of the dynamical peatland model and the exact parametrisation have to be revisited, thus, respective results presented here are preliminary but demonstrate the general viability of the approach. This work has been motivated by the aim to simulate the peatland C balance and \chh\ emissions under glacial climate conditions, an application to be pursued in future work. The model development has been carried out in close collaboration with R. Spahni who helped me collecting necessary input files, conducted simulations covering the last 22 kyr, corrected bugs in my code, and delivered important discussion inputs for how to improve the model.
+
+\section{Introduction}
+Greenhouse gas emissions from wetland ecosystems are important for global budgets and have been simulated with Global Dynamic Vegetation Models (DGMV). Peatlands, in particular, play a crucial role on long time scales in determining the carbon balance of the global terrestrial biosphere. DGVMs resolve relevant processes and predict terrestrial greenhouse gas emissions and uptake in response to climate and \coo , but often rely on a fixed prescribed extent of wetlands and peatlands. Predictive model capabilities w.r.t. the spatial distribution of wetlands and peatlands are crucial when applying DGVMs to climate boundary conditions beyond the present-day state, i.e., when their spatial distribution cannot be prescribed from present-day observational data.\\
+
+Here, we present the implementation of a TOPMODEL approach within the LPX-Bern DGVM to dynamically predict the spatial and seasonal wetland distribution over time. In this approach, the inundated area fraction within a model gridcell ($\sim$1$^{\circ}\times$1$^{\circ}$) is related to the water table position (WTPOS) an using sub-grid scale ($\sim$1 km) information on topography. WTPOS is simulated by the LPX-Bern DGVM in response to the soil water budget which evolves in response to precipitation, evaporation and plant transpiration. The spatial distribution of peatlands is modeled as a convolution of suitable peatland growth conditions and persistent flooding as simulated by the TOPMODEL implementation.\\
+
+We document the model perfomance depending on the choice of model parameters and demonstrate how the TOPMODEL implementation can be optimized to minimize computational resources by applying a spatially resolved set of fit parameters which mimic the sub-grid scale distribution of topographical information. Finally, we present simulation results for the 20th century and the future following a set of RCP scenarios based on the dynamic wetland representation and compare these results with results of an earlier model version.
+
+
+% Moreover, persistently inundated soils are subject to altered soil development under anoxic conditions. Thus, the information of wetland distribution - in combination with the simulated carbon balance under these conditions - can be used to predict the occurrence of carbon-rich organic soils (peatlands).\\
+
+% Before turning to a description, calibration, and validation of the wetland model (TOPMODEL), the soil water balance model in LPX is examined and its performance compared to obervation-derived data. In particular, the effect of soil water drainage (groundwater recharge) limitation by sub-soil permeability is assessed. A respective dataset has recently become available for use in global-scale hydrology modeling and may potentially improve the performance of a wetland model in regions where sub-soil permeability impacts the soil water balance.
+
+
+\section{Methods}
+\label{sec:topm.methods}
+
+\begin{figure}[ht!]
+  \includegraphics[width=\textwidth]{/alphadata01/bstocker/topmodel/fig/setup.pdf}
+  \caption[Overview of information flow of the TOPMODEL implementation and dynamic peatland model in LPX-Bern]{Overview of information flow of the TOPMODEL implementation and dynamic peatland model in LPX-Bern. Boxes represent datasets, given at their respective spatial resolution as indicated in the lower right edge of each box. CTI values are derived from the \citet{hydro1k} high resolution topography dataset using the R library ``topmodel'' \citep{rtopmodel} (1). Fit parameters $(v, k, q)$ are derived by applying the least-squares fitting algorithm 'nls' in R \citep{R}) to best reproduce the ``empirical'' relationship between WTPOS and the flooded area fraction $f$ (2). $(v, k, q)$ are prescribed to LPX-Bern to predict $f$ as a function of WTPOS, which is interactively simulated in LPX-Bern (3). Peatland C balance criteria are used to determine whether a peatland can establish in the respective gridcell (4, see also Figure \ref{fig:ptcrit}). If criteria are satisfied, the peatland area fraction converges over time to the potential peatland area fraction (6), as determined from inundation persistency (5).}
+\label{fig:overview}
+\end{figure}
+
+\subsection{Dynamic wetland distribution}
+The implementation of the TOPMODEL approach to dynamically simulate inundated areas in a DGVM is illustrated in Figure \ref{fig:overview}. TOPMODEL makes use of sub-gridcell scale topography information to relate the gridcell mean water table position and runoff index (here termed WTPOS) to the the flooded area fraction within each grid cell. The basic information to determine this relationship is provided by the sub-grid scale distribution of the Compound Topographic Index (CTI). In the following, we refer to ``pixels'' (index $i$, here $\sim$1 km) as the gridcells within each model gridcell (index $x$, here 1\degrees\ $\times$ 1\degrees ). The CTI determines how likely a pixel is to get flooded (``floodability''). The higher the value, the higher the floodability. It is defined as 
+\begin{equation}
+  \text{CTI}_i = \ln (a_i/\tan\beta_i)\;\,
+\end{equation}
+where $a_i$ represents the catchment area per pixel, that is the total area that drains into/through the respective pixel. $\beta_i$ refers to the slope of the pixel. CTI values are derived from the HYDRO1k high resolution ($\sim$1 km) topography dataset \citep{hydro1k} and are calulated using the R library ``topmodel'' \citep{rtopmodel}. Following the TOPMODEL approach, we calculate the threshold CTI, CTI$^{\star}$, as a function of WTPOS, where all pixels $i$ with CTI$_i >$CTI$^{\star}$ are flooded:
+\begin{equation}
+\text{CTI}^{\star} = \text{CTI}_{\text{mean}} - M \cdot \text{WTPOS}
+\label{eq:topm}
+\end{equation}
+CTI$_{\text{mean}}$ is the mean CTI value, averaged over the entire catchment area in which the respective pixel is located. The catchment area dataset is from \citet{hydro1k}. Thus, the floodability is a relative measure compared to other pixels' floodability in the same catchment area. M is a free (and tunable, see Section \ref{sec:params}) parameter. The flooded area within the respective gridcell is then calculated as the total area of all pixels with CTI$_i >\max($CTI$^{\star}$, CTI$_{\text{min}})$, to also take into account that pixels with CTI$_i<$ CTI$_{\text{min}}$ are never flooded. The choice of CTI$_{\text{min}}$ affects the maximum simulated flooded area and is discussed in Section \ref{sec:params}.\\
+
+The monthly updated ``water table position'', WTPOS, is defined here as an index consisting of the monthly mean water-filled pore space, the monthly total runoff, and the ``actual'' soil depth, modified by the presence of frozen soil layers:
+\begin{equation}
+  \text{WTPOS}_m = \frac{1}{N_m} \sum_{d=1}^{N_m} ( -z_{l_0,d} + \sum_{l=1}^{l_0} W_{l,d} \cdot \frac{\Delta z_l}{\phi} ) + \frac{\text{runoff}_m}{\phi} \; .
+\label{eq:wtpos}
+\end{equation}
+Subscripts $m$, $d$, and $l$ represent months, days, and soil layers, $N_m$ is the number of days for month $m$, $l_0$ is the number of the layer just above the first frozen soil layer counted from the top (surface, $l$=1), $W_{l,d}$ is the daily updated soil liquid water plus ice fraction in layer $l$, $z_l$ is the soil layer thickness, $\phi$ is the porosity (uniform over depth), and runoff$_m$ is the sum of monthly total surface (runoff$_{\text{surf.}}$) and drainage runoff (perc$_2$, see Equation \ref{eq:waterbal}).\\
+
+As formulated in Equation \ref{eq:wtpos} for the case where no frozen soil layers are present, WTPOS $\ge -z_{l_0,d} = z_{\text{max}} = -2000$ mm (globally uniform soil depth in model). $z_{l_0,d}$ is set to the depth of the uppermost frozen soil layer if any is present. As WTPOS is the governing explanatory variable to simulate the flooded area fraction $f$ (Equation \ref{eq:fit}), the presence of any frozen soil layer leads to an increase in $f$. This is supposed to mimic the amplified susceptibility to flooding on (partially) frozen soils, but may overestimate this effect where the liquid soil water above the uppermost frozen soil layer $l_0$ is low. In this case, $f$ may be large even if the non-frozen soil is dry. Thus, we apply a modified $z_{l_0,d}^{\star}$ in Equation \ref{eq:wtpos}, which is adjusted to lower values if the soil is dry, according to
+\begin{equation}
+z_{l_0,d}^{\star} = z_{l_0,d} - (z_{l_0,d}-z_{\text{max}})\;e^{-\lambda\;\theta_d}
+\label{eq:thawd}
+\end{equation}
+$\theta_d$ is the daily updated soil moisture index (Equation \ref{eq:soilmind}), averaged over all soil layers above $l_0$, and $\lambda$ is a parameter, here set to 2. \\
+
+The distribution of CTI values within a given gridcell and the catchment mean CTI determine the flooded area fraction $f$ of this gridcell for each WTPOS. This relationship is distinct for each gridcell and is illustrated in Figure \ref{fig:topmodel_example1} for two example gridcells. Having to rely on the full information CTI$_i$ is computationally costly when operating the TOPMODEL approach interactively in a DGVM, due to the (necessarily) high spatial resolution of CTI$_i$. This can be resolved by approximating the CTI$_i$ distribution within gridcell $x$ using an asymetric sigmoid fit, accoring to
+\begin{equation}
+f_{x,m} = \left( \frac{1} { 1+v_x\cdot e^{-k_x(\text{WTPOS}_{x,m}-q_x)} } \right) ^{1/v_x}
+\label{eq:fit}
+\end{equation}
+The flooded area fraction $f_{x,m}$ of each grid cell $x$ and month $m$ is calculated within LPX using Equation \ref{eq:fit} with parameters $(v, k, q)_x$ which are prescribed. $(v, k, q)$ are calculated offline using the least-squares fitting algorithm 'nls' in R \citep{R}) to best reproduce the ``empirical'' relationship (black line in Figures \ref{fig:topmodel_example2}). The ``empirical'' relationship, in turn, depends on the choice of $M$ in Equation \ref{eq:topm} and CTI$_{\text{min}}$. $M$ and CTI$_{\text{min}}$ can be regarded as tunable parameters that are to be chosen so that the model best reproduces the distribution of wetlands. In Section \ref{sec:params}, we describe how $M$ and CTI$_{\text{min}}$ are constrained using observation-based data.
+
+\begin{figure}[ht!]
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/hist_AS0.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/hist_AS1.pdf}
+\caption[CTI distribution for two example gridcells]{Histograms for the distribution of CTI values for two example gridcells, centered at 101.25$^{\circ}$ W, 22.5$^{\circ}$ N (mountains, left), and at 93.75$^{\circ}$ W, 20$^{\circ}$ N (flats, right). Vertical blue lines illustrate CTI$^{\star}$ for each month of the simulation (1901-2012 AD).}
+\label{fig:topmodel_example1}
+\end{figure}
+
+\begin{figure}[ht!]
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/curvefit_AS0.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/curvefit_AS1.pdf}
+\caption[``Empirical'' and fitted relationship between WTPOS to the flooded area fraction for two example gridcells]{``Empirical'' (black) and fitted (red) curves relating the grid cell mean WTPOS to the flooded fraction of a mountainous (left) and flatland (right) gridcell. This relationship relies on the distribution of CTI values within the grid cell as illustrated in top panel. Vertical blue lines illustrate WTPOS for each month of the simulation (1901-2012 AD).}
+\label{fig:topmodel_example2}
+\end{figure}
+
+
+% \begin{figure}[ht!]
+% %\begin{center}
+%   \includegraphics[width=0.60\textwidth]{/alphadata01/bstocker/topmodel/fig/floodmap_HBL.pdf}
+% %\end{center}
+% \caption{TOPMODEL illustration for a grid cell in the Hudson Bay Lowlands (82.5$^{\circ}$ W, 52.5$^{\circ}$ N). Top left: Histogram for the distribution of CTI (topographical index) values in the respective grid cell. Blue lines illustrate the threshold CTI values (above which all sub-grid pixels are flooded) for each month of the simulation (1901-2005 AD). Top right: ``empirical'' (black) and fitted (red) curve relating the grid cell mean ``water table position'' to the flooded fraction of this grid cell. This relationship relies on the distribution of CTI values within the grid cell as illustrated in top left figure. Bottom: map of this pixel's topography (green is low, grey is high) and the flooded pixels for a water table position of -1220 mm (mean of JJA).}
+% \label{fig:wpool_top}
+% \end{figure}
+
+
+% \begin{figure}[ht!]
+% %\begin{center}
+%   \includegraphics[width=0.60\textwidth]{/alphadata01/bstocker/topmodel/fig/floodmap_QBC.pdf}
+% %\end{center}
+% \caption{TOPMODEL illustration for a grid cell in Quebec (63.75$^{\circ}$ W, 52.5$^{\circ}$ N). Top left: Histogram for the distribution of CTI (topographical index) values in the respective grid cell. Blue lines illustrate the threshold CTI values (above which all sub-grid pixels are flooded) for each month of the simulation (1901-2005 AD). Top right: ``empirical'' (black) and fitted (red) curve relating the grid cell mean ``water table position'' to the flooded fraction of this grid cell. This relationship relies on the distribution of CTI values within the grid cell as illustrated in top left figure. Bottom: map of this pixel's topography (green is low, grey is high) and the flooded pixels for a water table position of -1220 mm (mean of JJA).}
+% \label{fig:wpool_top}
+% \end{figure}
+
+\subsection{Dynamic peatland distribution}
+Lateral expansion and contraction of peatland areas are simulated dynamically as a convolution of (i) peatland growth conditions as simulated by LPX and (ii) seasonally flooded areas as simulated by the TOPMODEL implementation (see Figure \ref{fig:overview}). Peatland growth conditions are simulated for a neglibily small area fraction ($f_{\text{peat}}^{\text{min}}=$0.1\%) in each gridcell globally. For this, we apply the model LPJ-WHyMe \citep{wania09gbcb} implementation in LPX \citep{spahni11bg, spahni12cpd} for peatland-specific carbon dynamics in response to water table depth variations, soil temperature, and moss and graminoid vegetation growth and turnover. For each simulation year, peatland soil carbon growth conditions are assessed in each gridcell. Peatlands occur where organic material can accumulate in the soil to eventually form peatland soils. That is, the input of litter into the soil exceeds the decay of soil organic matter. In the model, this is implemented as a condition (pt$_{\text{crit}}$) which is set to 'true' if the mass balance of the catothelm, averaged over the previous 20 yr, is greater than 5 gC/m$^2$/yr. Once, pt$_{\text{crit}}$ is 'true', it can only be set to 'false' again, if both the mass balance of the catothelm falls below 5 gC/m$^2$/yr, and the total soil carbon mass (sum of acrothelm and catothelm) falls below 100 kgC (see Figure \ref{fig:ptcrit}).\\
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=0.55\textwidth]{/alphadata01/bstocker/topmodel/fig/pt_crit.pdf}
+\end{center}
+\caption[Illustration of decisions determining the criterium for peatland occurrence]{Illustration of decisions determining the criterium for peatland occurrence, pt$_{\text{crit}}$.}
+\label{fig:ptcrit}
+\end{figure}
+
+
+The potential peatland area fraction $f_{\text{peat}}^{\text{pot}}$ remains equal to $f_{\text{peat}}^{\text{min}}$ as long as pt$_{\text{crit}}$ is 'false', and is defined as follows, as soon as pt$_{\text{crit}}$ is 'true': For each gridcell, the 240 values of $f_m$ for each month of the preceeding 20 years are sorted in decscending order. The sorting transforms the vector $f_m$ to $f^{\star}_n$.
+\begin{equation}
+f_m=(f_1, ... f_{240}) \rightarrow f^{\star}_n=(f^{\star}_1, ... f^{\star}_{240})
+\end{equation}
+The potential peatland area fraction $f_{\text{peat}}^{\text{pot}}$ is then defined as
+\begin{equation}
+f_{\text{peat}}^{\text{pot}} = f_N^{\star},\;N=(1,5,10,20,40),
+\label{eq:plftune}
+\end{equation}
+where $N$ is a constrainable parameter. We investigated modeled peatland areas, varying $N$ in the above defined range (see Section \ref{sec:params}). As long as pt$_{\text{crit}}$ is 'true', the actual peatland area fraction $f_{\text{peat}}$ gradually expands towards $f_{\text{peat}}^{\text{pot}}$ with a maximum areal expansion of 1\%/yr to account for the limited rate of lateral expansion. Vice versa, if pt$_{\text{crit}}$ switches from 'true' to 'false' $f_{\text{peat}}$ is gradually contracted to $f_{\text{peat}}^{\text{min}}$ by 1\%/yr.
+\begin{equation}
+f_{\text{peat}}(t) = \left\{
+\begin{array}{l l}
+    \min(1.01 \cdot f_{\text{peat}}(t-1),\;f_{\text{peat}}^{\text{pot}}), \quad \text{pt}_{\text{crit}}==\text{true}\\
+    \\
+    \max(0.99 \cdot f_{\text{peat}}(t-1),\;f_{\text{peat}}^{\text{min}}), \quad \text{pt}_{\text{crit}}==\text{false}\\
+\end{array} 
+\right.
+\end{equation}
+Expansion and contraction of each land unit (tile) in the model conserves C and N, and soil water mass. Retreated peatland areas are re-classified as a separate land unit ($f_{\text{peat}}^{\text{old}}$) with all properties and model parametrisations as on non-peatland soils.
+\begin{equation}
+ f_{\text{peat}}^{\text{old}}(t) = \max(f_{\text{peat}}(t=0,...\;t)) - f_{\text{peat}}(t) 
+\end{equation}
+Expanding peatlands first expand into these areas which have formerly (in previous simulation years) been covered by peatlands. This guarantees that C and N mass on gridcell area fractions that have never (in the course of the simulation) been covered by peatlands are kept track of separately.
+
+
+\subsection{Topmodel parameter choice}
+\label{sec:params}
+The simulated flooded area fraction is subject to the choice of different model parameters ($M$ in Equation \ref{eq:topm} and CTI$_{\text{min}}$), as well as to the definition of WTPOS, and, as the ultimate explanatory variables, the simulated soil water budget ($W$) and runoff. The simulated peatland area depends on all of the above mentioned factors, as well as on the perfomance of the (static) peatland model, and $N$ in Equation \ref{eq:plftune}. The implementation of a dynamical wetland model in LPX-Bern (TOPMODEL) is motivated by the interest in predicting the greenhouse gas balance of wetlands and peatlands. The model for terrestrial methane emissions involves the choice and definition of additional parameters and parametrisations. Most importantly, global scaling factors are applied in the to match atmospheric \chh\ budgets independently for different source types (wet mineral soils, peatlands, rice cultivation areas) \citep{spahni11bg}.\\
+
+Here, we tested the model perfomance for a range of parameter values $M$ and CTI$_{\text{min}}$ that yield plausible results for the simulated inundated area $f$. Then, given a selected parameter combination ($M$, CTI$_{\text{min}}$), we assessed a range of parameter values for $N$ to simulate the peatland area fraction $f_{\text{peat}}$.\\
+
+ Increasing $M$ causes a general contraction in $f$. Note however, that $M$ and $f$ do not relate linearly, but depend on the distribution of CTI. CTI$_{\text{min}}$ ``caps'' the maximum flooded area fraction in each gridcell and thus limits $f$ in areas with generally low CTI values (mountainous). The effect of varying CTI$_{\text{min}}$ within a plausible range (10, 12, and 14) is negligible for the total inundated area (Figures \ref{fig:wlftune.map.sa},\ref{fig:wlftune.map.af},\ref{fig:wlftune.map.as}) but has a small effect on seasonal maxima (Figure \ref{fig:wlftune.anncycl}).\\
+
+Various target datasets (benchmarks) can be used to constrain the choice of parameters and to test the performance of the model on different levels. In a first step, we focussed on the simulation of inundated areas based on the TOPMODEL implementation and assessed different parameter combinations ($M=(7,8,9)$, and CTI$_{\text{min}}=(10,12,14)$) by visually comparing results with observational data from \citet{prigent07grl}. These authors provide a dataset for inundated areas by month for years 1993-2004 AD. For the simulations presented in Section \ref{sec:results}, we selected a standard choice of $M=8$ and CTI$_{\text{min}}=12$. The choice of CTI$_{\text{min}}=12$ could not be constrained by total area or the annual cycle, but was motivated by an exploration of plausible maximum possible inundation areas (not shown). We chose $M=8$ so that major tropical and subtropical wetlands are well captured (see Figures \ref{fig:wlftune.map.sa},\ref{fig:wlftune.map.af},\ref{fig:wlftune.map.as}) while limiting the overestimation of total inundated area. Assessing the course of the annual cycle (Figure \ref{fig:wlftune.anncycl}) reveals a good agreement of the timing of maximum and minimum monthly inundated area but also shows that the total simulated inundated area based on $M=8$ is generally higher than suggested by \citet{prigent07grl}. While $M=9$ would allow for a better agreement in terms of total inundated area, it also implies an under-representation of some distinct spatial patterns in areas of major wetlands (e.g., Mekong lowlands, Ganges/Brahmaputra delta, Pantanal). Note, that the inundated area fraction co-determines the extent of peatlands given suitable growth conditions but does not affect vegetation and soil dynamics outside areas of peatland occurrence (most temperate regions, subtropics and tropics). Thus, $f$ is only used to simulate \chh\ emissions from soils. As mentioned above, \chh\ are also subject to an additional scaling to match the atmosheric budgets. Thus, the overestimation of wetland area fraction does not directly translate into an overestimation of \chh\ emissions.\\
+
+In general, none of the parameter combinations resulted in the high spatial heterogeneity of inundated areas suggested by \citet{prigent07grl}. Inundated areas tend to be overestimated in tropical regions with a closed forest vegetation cover (e.g., Amazon basin, Congo basin, Borneo, Indonesia), and to be underestimated in areas of intensive agricultural rice cultivation. In the model presented here, anthropogenic rice cultivation areas are neglected, which possibly explains this underestimation. An exploration of a broader range of parameter value combinations ($M=(4,5,6)$ and CTI$_{\text{min}}=(18,20,22)$) partly resolved the problem related with the spatial heterogeneity but resulted in an underestimation of the seasonal variability and a greater overestimation of total inundated area. Additionally, we tested to which degree additional information on the drainage capacity (permeability) of the sub-soil substrate could help to resolve the issue of underestimated spatial heterogeneity (see Section \ref{sec:gleeson}).\\
+
+\begin{figure}[ht!]
+\includegraphics[width=\textwidth]{/alphadata01/bstocker/topmodel/fig/overview_wlf_maps_nodrainlimit_SA_1x1deg.pdf}
+\caption[Inundated area fraction for different TOPMODEL parameters $M$ and CTI$_{\text{min}}$ (C), South America]{Inundated area fraction (mean over all months, 1993-2004 AD) for different TOPMODEL parameters $M$ and CTI$_{\text{min}}$ (C), South America. ``prigent'' is based on remotely sensed observational data \citep{prigent07grl}.}
+\label{fig:wlftune.map.sa}
+\end{figure}
+
+\begin{figure}[ht!]
+%\begin{center}
+  \includegraphics[width=\textwidth]{/alphadata01/bstocker/topmodel/fig/overview_wlf_maps_nodrainlimit_AF_1x1deg.pdf}
+%\end{center}
+\caption[Inundated area fraction for different TOPMODEL parameters $M$ and CTI$_{\text{min}}$ (C), Africa.]{Inundated area fraction (mean over all months, 1993-2004 AD) for different TOPMODEL parameters $M$ and CTI$_{\text{min}}$ (C), Africa. ``prigent'' is based on remotely sensed observational data \citep{prigent07grl}.}
+\label{fig:wlftune.map.af}
+\end{figure}
+
+\begin{figure}[ht!]
+%\begin{center}
+  \includegraphics[width=\textwidth]{/alphadata01/bstocker/topmodel/fig/overview_wlf_maps_nodrainlimit_AS_1x1deg.pdf}
+%\end{center}
+\caption[Inundated area fraction for different TOPMODEL parameters $M$ and CTI$_{\text{min}}$ (C), Asia]{Inundated area fraction (mean over all months, 1993-2004 AD) for different TOPMODEL parameters $M$ and CTI$_{\text{min}}$ (C), Asia. ``prigent'' is based on remotely sensed observational data \citep{prigent07grl}.}
+\label{fig:wlftune.map.as}
+\end{figure}
+
+\begin{figure}[ht!]
+  \includegraphics[width=0.3\textwidth]{/alphadata01/bstocker/topmodel/fig/wlf_anncycl_nodrainlimit_SA_1x1deg.pdf}
+  \includegraphics[width=0.3\textwidth]{/alphadata01/bstocker/topmodel/fig/wlf_anncycl_nodrainlimit_AF_1x1deg.pdf}
+  \includegraphics[width=0.3\textwidth]{/alphadata01/bstocker/topmodel/fig/wlf_anncycl_nodrainlimit_AS_1x1deg.pdf}
+\caption[Mean annual cycle of total inundated area by continent]{Mean annual cycle of total inundated area, integrated over a latitudinal band in different continents. Simulated data is given for different TOPMODEL parameters $M$ and CTI$_{\text{min}}$ and can be compared to obersvational data (black line) \citep{prigent07grl}. }
+\label{fig:wlftune.anncycl}
+\end{figure}
+
+\clearpage
+
+In a second step, we turned to testing parameter combinations $N=(1,5,10,20,40)$ (see Equation \ref{eq:plftune}) with respect to the simulated peatland area fraction and assessed the model performance by visual comparison with data by \citet{tarnocai09gbc} and \citet{yu10grl}. Increasing $N$ reduces $f_{\text{peat}}^{\text{pot}}$ and vice versa (see Figures \ref{fig:plftune.map.na}, \ref{fig:plftune.map.as}, \ref{fig:plftune.map.eu}). For example, $N=20$ means that the potential peatland area fraction is determined by the inundated area fraction that has been attained in $N=20$ months out of the 240 months of the preceeding 20 years. Figure \ref{fig:plftune.curves} illustrates this relation between $N$ and $f_{\text{peat}}^{\text{pot}}$ for each gridcell of the respective continent.\\
+
+As for the inundated area fractions, the model captures the broad distribution of areas, where peatlands can possibly occur (note, that Figures \ref{fig:plftune.map.na}, \ref{fig:plftune.map.as}, \ref{fig:plftune.map.eu} illustrate $f_{\text{peat}}^{\text{pot}}$, and can thus not be directly compared with \citet{tarnocai09gbc} data). The high area fractions in the West Siberian Lowlands and in the Hudson Bay Lowlands, as suggested by \citet{tarnocai09gbc} and \citet{yu10grl}, are not fully attained when using $N=20$. At the same time, $N=10$ does yield a better agreement with \citet{tarnocai09gbc} in these areas but also leads to an overestimation of peatland areas in other regions. The thawdepth modification as described in Equation \ref{eq:thawd} results in a better performance in regions affected by permafrost (not shown), and thus reduces the overestimation of $f_{\text{peat}}$ in regions outside the major peatland areas as suggested by \citet{tarnocai09gbc}.\\
+
+We selected $N=20$ and $\lambda=2$ as a parameter combination which simultaneously yields a good agreement with respect to the total peatland area ($\sim$4 mio. km$^2$, \citet{yu10grl}) and the total peatland carbon mass (365-550 GtC, \citet{tarnocai09gbc,yu10grl}) as simulated by a transient run over the last Deglaciation (see Figure \ref{fig:fpeat_LGM_pres}, and Section \ref{sec:modelsetup.topm}). A systematic parameter optimization based on a cost function could not be achieved in a meaningful way due to the immense computational resources required for the transient spinup of peatlands over the 22,000 year period from LGM to present.\\
+
+
+\begin{figure}[ht!]
+%\begin{center}
+  \includegraphics[width=0.9\textwidth]{/alphadata01/bstocker/topmodel/fig/overview_plf_maps_nodrainlimit_AS_1x1deg.pdf}
+%\end{center}
+\caption[Potential peatland area fraction for different parameters $N$, Siberia]{Potential peatland area fraction for different parameters $N$, Siberia. ``tarnocai'' represents the observational peatland distribution after \citet{tarnocai09gbc}.}
+\label{fig:plftune.map.as}
+\end{figure}
+
+\begin{figure}[ht!]
+%\begin{center}
+  \includegraphics[width=0.9\textwidth]{/alphadata01/bstocker/topmodel/fig/overview_plf_maps_nodrainlimit_NA_1x1deg.pdf}
+%\end{center}
+\caption[Potential peatland area fraction for different parameters $N$, North America]{Potential peatland area fraction for different parameters $N$, North America. ``tarnocai'' represents the observational peatland distribution after \citet{tarnocai09gbc}.}
+\label{fig:plftune.map.na}
+\end{figure}
+
+\begin{figure}[ht!]
+%\begin{center}
+  \includegraphics[width=0.9\textwidth]{/alphadata01/bstocker/topmodel/fig/overview_plf_maps_nodrainlimit_EU_1x1deg.pdf}
+%\end{center}
+\caption[Potential peatland area fraction for different parameters $N$, Europe]{Potential peatland area fraction for different parameters $N$, Europe. ``tarnocai'' represents the observational peatland distribution after \citet{tarnocai09gbc}.}
+\label{fig:plftune.map.eu}
+\end{figure}
+
+\begin{figure}[ht!]
+  \includegraphics[width=0.5\textwidth]{/alphadata01/bstocker/topmodel/fig/plftune_M8_C12_AS.pdf}
+  \includegraphics[width=0.5\textwidth]{/alphadata01/bstocker/topmodel/fig/plftune_M8_C12_NA.pdf}
+  \includegraphics[width=0.5\textwidth]{/alphadata01/bstocker/topmodel/fig/plftune_M8_C12_EU.pdf}
+\caption[Monthly inundated area fraction, ranked in decending order for different contintents]{Inundated area fraction, ranked in decending order for each month in a 20 years period (1980-2000 AD) for different contintents (same spatial domains as in maps of Figure \ref{fig:plftune.map.as}). Each line represents a single gridcell. The line color represents the peatland area fraction of this gridcell after \citet{tarnocai09gbc}. The sub-plot in the upper-right part of the main plot is a zoom of the same data as in the main plot. Blue vertical ticks represent parameters $N$. The value (monthly flooded fraction) of the curve at the ticks $N$ is the potential peatland fraction as shown in Figures \ref{fig:plftune.map.as}-\ref{fig:plftune.map.eu}}
+\label{fig:plftune.curves}
+\end{figure}
+
+% \begin{figure}[ht!]
+%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/plftune_M8_C12_NA.pdf}
+% \caption{Inundated area fraction, ranked in decending order for each month in a 20 years period (1980-2000 AD) in North America (same spatial domain as in maps of Figure \ref{fig:plftune.map.as}). Each line represents a single gridcell. The line color represents the peatland area fraction of this gridcell after \citet{tarnocai09gbc}. The sub-plot in the upper-right part of the main plot is a zoom of the same data as in the main plot. Blue vertical ticks represent parameters $N$. The value (monthly flooded fraction) of the curve at the ticks $N$ is the potential peatland fraction as shown in Figures \ref{fig:plftune.map.as}-\ref{fig:plftune.map.eu}}
+% \label{fig:plftune.curves.na}
+% \end{figure}
+
+% \begin{figure}[ht!]
+%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/plftune_M8_C12_EU.pdf}
+% \caption{Inundated area fraction, ranked in decending order for each month in a 20 years period (1980-2000 AD) in Europe (same spatial domain as in maps of Figure \ref{fig:plftune.map.as}). Each line represents a single gridcell. The line color represents the peatland area fraction of this gridcell after \citet{tarnocai09gbc}. The sub-plot in the upper-right part of the main plot is a zoom of the same data as in the main plot. Blue vertical ticks represent parameters $N$. The value (monthly flooded fraction) of the curve at the ticks $N$ is the potential peatland fraction as shown in Figures \ref{fig:plftune.map.as}-\ref{fig:plftune.map.eu}}
+% \label{fig:plftune.curves.eu}
+% \end{figure}
+
+% \begin{figure}[ht!]
+% \begin{center}
+%   \includegraphics[width=0.42\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_thawdpar_5_map.pdf}
+%   \includegraphics[width=0.42\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_thawdpar_2_map.pdf}\\
+% \end{center}
+% \caption{Effect of thawdepth modification ($\lambda=(2,5)$ in Equation \ref{eq:thawd}). }
+% \label{fig:thawd}
+% \end{figure}
+
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=\textwidth]{/alphadata01/bstocker/topmodel/fig/trend_peat.pdf}
+\end{center}
+\caption{Peatland area and C mass evolution over last Deglaciation. Simulated, for different model parameters ('thawmod' is $\lambda$ in Equation \ref{eq:thawd}) and drainage limitation options (no drainage limitation = 'full drain', drainage completely suppressed = 'no drain', drainage limited by sub-soil permeability = 'Gleeson drain'). Figure created and kindly shared by R. Spahni.}
+\label{fig:fpeat_LGM_pres}
+\end{figure}
+
+\clearpage
+
+\subsection{Model setup}
+\label{sec:modelsetup.topm}
+LPX-Bern, version 1.0 \citep{stocker13natcc} has been applied, which additionally includes the TOPMODEL implementation and the dynamic peatland model as described in Section \ref{sec:topm.methods}. Standard parameters are chosen as outlined in Section \ref{sec:params}: $M=8$, CTI$_{\text{min}}=12$, $N=20$, $\lambda=2$. These values are used for simulation results as presented in the subsequent sections (Section \ref{sec:results}).\\
+
+Two types of model setups were used: In the first set of simulations, we constrained inundated areas applying CRU TS 3.21 observational climate data \citep{harris13} at a relatively high spatial resolution (1\degree $\times$1\degree ) and prescribe \coo\ \citep{etheridge96jgr}. In these simultions, only natural land (no agricultural land and no peatlands) was simulated. The inundation fraction $f$ does not affect the carbon cycling, and only modifies \chh\ emissions without any other feedbacks on the land model. These simulations were spun up to equilibrium and transiently cover the years 1901-2012 AD.\\
+
+In the second set of simulations, we constrained the total global peat C mass and peatland area. Due to the long time scales of peat C dynamics and the ongoing net C uptake due to non-equilibrium conditions at present \citep{spahni13cp}, the history of peat buildup is crucial for its present-day state. Therefore, we prescribed transiently varying boundary conditions from the Last Glacial Maximum (LGM) until present, with climate forcing data from the TraCE-21ka project \citep{liu09}), and varying atmospheric \coo , and orbital parameters for the incoming solar radiation \citep{berger78}. Peatland C dynamics transiently evolve in response to these forcings after an equilibrium spinup at the LGM.\\
+
+
+
+\section{Results} 
+\label{sec:results}
+\subsection{Inundated areas}
+Simulation results suggest that areas where a large fraction of the land is persistently inundated can be found at high northern latitudes, along major river valleys, and in areas with high annual precipitation, mainly in the tropics (see Figure \ref{fig:inundave}). At high northern latitudes, highest inundation fractions can be found in permafrost regions where a shallow soil thaw depth constrains drainage. In the major boreal lowlands (Hudson Bay Lowland, West Siberian Lowland), annual mean inundation fraction are only around 10\% owing to inundation area fractions being set to zero when snow cover is present and/or when the uppermost soil layer is frozen. However, large parts (60-80\%) of these areas are inundated after snow melt and when drainage is constrained by frozen soil layers (see Figure \ref{fig:inundmax}). The same effect plays on the Tibetan Plateau, where maximum inundated area fractions of $\sim$25\% are simulated.\\
+
+In the tropics, seasonality in inundated areas is driven by seasonality in precipitation and the temporal dynamics of soil water storage and runoff. Supplementary Figures \ref{fig:season_top} and \ref{fig:season_bottom} reveal a very good agreement in the timing of maximum and minimum soil moisture in different latitudinal bands and in upper and lower soil layers separately. A good agreement between observed and simulated surface runoff is indicated by Supplementary Figure \ref{fig:runoff_obs}. Annual average inundation fraction in the western Amazon region is 10-15\% with annual maximum values of up to 30\%. In Africa, the most important inundation areas are much less spatially spread out, owing to different topographical settings. In Asia, inundation areas are concentrated along the major rivers with annual maximum values around 60\%, a feature well captured by the model.\\
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=0.7\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_ave_map.pdf}
+\end{center}
+\caption{Simulated inundated area fraction, annual mean, mean over 2001-2010 AD.}
+\label{fig:inundave}
+\end{figure}
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=0.7\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_max_map.pdf}
+\end{center}
+\caption{Simulated inundated area fraction, annual maximum, mean over 2001-2010 AD.}
+\label{fig:inundmax}
+\end{figure}
+
+\clearpage
+
+\subsection{Peatland distribution}
+\citet{tarnocai09gbc} suggest spatially concentrated peatlands (see Figure \ref{fig:plf}, bottom right) with area fractions of $\sim$90\% in the Hudson Bay Lowlands and $\sim$70\% in the West Siberian Lowlands. Our simulations yield similarly high maximum values when active peatlands $f_{\text{peat}}$ and 'oldpeat' are added. Considerable peatland fractions are simulated also outside these major lowlands, particularly in Siberia, along a latitudinal band around 60\degrees N. In this area, \citet{tarnocai09gbc}, as well as \citet{yu10grl} suggest more restricted peatland areas. Simulated peatland areas outside the boreal region can be compared with \citet{yu10grl} who, in contrast to \citet{tarnocai09gbc}, also account for peatlands outside permafrost areas. The model applied here does not include plant functional types (PFTs) adapted to warm climates. consequently, growth and litter input to the soil is limited outside the boreal region. In combination with faster soil turnover rates with warmer temperature, this does not yield in soil C accumulation sufficient for peatland establishment.\\
+
+\begin{figure}
+\begin{center}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/pplf_map.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/plf_map.pdf}\\
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/plf_map_peatold.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/plf_map_tarnocai.pdf}\\
+\end{center}
+\caption{Upper left: potential peatland area fraction $f_{\text{peat}}^{\text{pot}}$, mean over years 2001-2012 AD. Upper right: Actual simulated peatland area fraction $f_{\text{peat}}$, mean over years 2001-2012 AD. Lower left: area fraction of land use class 'oldpeat' at present (average over years 2000-2012 AD). Lower right: peatland area fraction from \citet{tarnocai09gbc}.}
+\label{fig:plf}
+\end{figure}
+% \begin{figure}[ht!]
+% \begin{center}
+%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/pplf_map_eu.pdf}
+%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/plf_map_eu.pdf}
+% \end{center}
+% \caption{Zoom of Figure \ref{fig:plf}. Left: potential peatland area fraction $f_{\text{peat}}^{\text{pot}}$, mean over years 2001-2012 AD, as in Figure \ref{fig:plf}. Right: Actual simulated peatland area fraction $f_{\text{peat}}$, mean over years 2001-2012 AD.}
+% \label{fig:plf}
+% \end{figure}
+
+The model dynamically adjusts the spatial extent of peatlands in response to whether mass balance and total mass criteria are fulfilled (see Figure \ref{fig:ptcrit}) and accounts for inertia in area changes. Thus, the actual peatland area fraction $f_{\text{peat}}$ continuously adjusts to the varying potential peatland area fraction $f_{\text{peat}}^{\text{pot}}$. Figure \ref{fig:pt_active}, top, represents areas where $f_{\text{peat}}^{\text{pot}}$ is considerably higher than $f_{\text{peat}}$ and peatlands are growing. The bottom panel of Figure \ref{fig:pt_active} analogously represents areas where peatlands are shrinking today. This exhibits a large declining trend in peatland areas in Scandinavia and western Russia, while a northward expansion of Siberian peatlands is simulated.\\
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=0.75\textwidth]{/alphadata01/bstocker/topmodel/fig/plf_inc.pdf}
+  \includegraphics[width=0.75\textwidth]{/alphadata01/bstocker/topmodel/fig/plf_dec.pdf}
+\end{center}
+\caption{Left: Growing peatlands. Blue gridcells, determined as where $f_{\text{peat}}^{\text{pot}} > 1.03 \cdot f_{\text{peat}}$. Right: Shrinking peatlands. Red gridcells, determined as where $f_{\text{peat}}^{\text{pot}} < 0.97 \cdot f_{\text{peat}}$. }
+\label{fig:pt_active}
+\end{figure}
+
+The pattern is more heterogenous in North America. Somewhat surprisingly, a large part of the peatland areas in the Hudson Bay Lowlands are classified as 'oldpeat', where carbon reservoirs are subject to decomposition rates as on mineral soils (see also Figure \ref{fig:plf}). This has implications for the global peatland carbon balance (Figure \ref{fig:Cpeat}). The spatial and temporal dynamics of favourable peat growth condition suggests, on a global average, a decilning trend of peat C stocks over the 20th century, from around 680 GtC in the first part of the century to around 580 GtC at present. This is a large decline, on the order of cumulative emissions from anthropogenic land use change (see Chapter \ref{sec:lutrans}), and is in contrast to the results based on a fixed peatland extent which suggest a cumulative uptake of $\sim$5 GtC over the same period. Note however, that a reduction (increase) in peatland soil carbon does not correspond to direct according \coo\ emissions to (uptake from) the atmosphere. C is first transferred to (from) the land use class 'oldpeat', where it is subject to the same rate of decomposition as in mineral soils.
+\begin{figure}
+\begin{center}
+  %\includegraphics[width=0.42\textwidth]{/alphadata01/bstocker/topmodel/fig/eCH4_topmodel_vs_old.pdf}
+  \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/Cpeat_topmodel_vs_old.pdf}
+\end{center}
+\caption{
+%Left: Global total methane emissions, TOPMODEL vs. fixed wetland extent \citep{prigent07grl} (sum of emissions from peatlands, inundated areas, and wet mineral soils, Tg\chh /yr). Right: 
+Global total peatland soil carbon, dynamical peatland model ('TOPMODEL') vs. fixed peatland extent \citep{tarnocai09gbc} (GtC). Note that a reduction (increase) in peatland soil carbon does not correspond to according \coo\ emissions to (uptake from) the atmosphere. C is first transferred to (from) the land use class 'oldpeat', where it is subject to the same rate of decomposition as in mineral soils.}
+\label{fig:Cpeat}
+\end{figure}
+
+\subsection{Peat buildup since LGM}
+The time between the Last Glacial Maximum (22-20 kyr BP) and the beginning of the present warm period, the Holocene ($\sim$11 kyr BP), was accompanied by profound climatic transitions, the decay of the Laurentide and Fennoscandian ice sheets, and a sea level rise of $\sim$120 m. The warming and wettening of the northern latitudes implied a northward shift of peatlands into areas formerly covered by ice sheets or unsuitable for peat growth due to low temperatures and/or dry conditions, while conditions became unfavourable in areas where peatlands existed during the Glacial period. This shift is illustrated in Figure \ref{fig:fpeat_LGM_pres}. During the LGM, largest peatland areas are simulated in the the lowlands south of today's Great Lakes (``cornbelt''), in central and eastern Europe and in lowland areas of the southern part of Siberia. At present, the total area suitable for peat growth is much larger. This is reflected also in Figure \ref{fig:fpeat_LGM_pres}. The simulated present-day global peatland area are within the range suggested by \citet{yu10grl} and \citet{tarnocai09gbc}, while C stocks are higher than than suggested by observational data and by model results when fixed areas are prescribed \citep{spahni13cp}.\\
+
+Looking at North American and Siberian peatlands individually reaveals a major re-organization of peatland C stocks in North America with a decline in C storage during the Deglaciation and a buildup of the same order during the Holocene after the disintegration of the Laurentide ice sheet. While C balance during the Holocene parallels the results based on a fixed prescribed areal extent, the loss of 150-200 GtC (between 18 and 14 kyr BP) stored in peatlands at the LGM is not captured by such a simulation. The total North American peatland area is underestimated by the dynamical peatland model, while the Siberian peatland area is overestimated.\\
+
+The temporal dynamics of peat buildup during the Deglaciation has implications for the Holocene terrestrial C budget. Simulated present-day total peatland C stocks can be constrained with observational data, while $^{14}$C age of peatland soil organic matter reveals a peatland's C balance over time \citep{yu11hol}. This information has been used in \citet{spahni13cp} to tune the modelled accumulation rates in combination with fixed prescribed peatland areas. When using the dynamical peatland model, the peat buildup over time additionally depends on the simulated dynamic initiation dates; a factor which has been prescribed before. The model applied here suggests a less positive peatland C balance in the early Holocene (11-7 kyr BP) than simulated with an earlier model version and derived from peat $^{14}$C analyses of today's existing peatlands (see Figure \ref{fig:holoC}).
+
+\begin{figure}
+\begin{center}
+  \includegraphics[width=0.6\textwidth]{/alphadata01/bstocker/topmodel/fig/map_peatarea_trace21_43.pdf}
+\end{center}
+\caption{Peatland area distribution at the Last Glacial Maximum (22 kyr BP) and at present. Figure created and kindly shared by R. Spahni.}
+\label{fig:fpeat_LGM_pres}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+  \includegraphics[width=0.85\textwidth]{/alphadata01/bstocker/topmodel/fig/map_peatc-diff_trace21_43.pdf}
+\end{center}
+\caption{Right column: carbon density in peatlands at different times (21 kyr, 10 kyr, 5 kyr, and 1 kyr BP). Left column: change in peatland C density between time steps. Figure created and kindly shared by R. Spahni. }
+\label{fig:Cpeat_LGM_pres}
+\end{figure}
+
+% \begin{figure}[ht!]
+% \begin{center}
+%   \includegraphics[width=\textwidth]{/alphadata01/bstocker/topmodel/fig/longleg_last21kyr_C_budget.pdf}
+% \end{center}
+% \caption{Deglaciation overview for global mean temperature, observed \coo\ , simulated \coo\ (with a passive Bern3D-emulated ocean) and their isotopic signatures, change in C stocks relative to 11 ka BP and the comparison to the inferred terrestrial C stock change after \citet{elsig}. Figure created and kindly shared by R. Spahni.}
+% \label{fig:tseries_LGM_pres}
+% \end{figure}
+
+\clearpage
+
+\subsection{Methane emissions}
+Methane (\chh ) emissions are simulated for inundated areas, peatlands, and wet mineral soils. The TOPMODEL implementation allows for a spatio-temporally dynamic representation of \chh\ emissions from inundated areas and, in combination with the dynamic peatland model, simulates changes in peatland \chh\ emissions in response to varying flooding conditions in peatland areas. For the results presented here, rice cultivation areas were not accounted for and their \chh\ emissions set to zero. Each \chh\ source has been tuned to match an atmospheric observation based on \citet{spahni11bg} and thus, by definition, yields identical total global emissions compared to the model setup with prescribed wetland and peatland areas (see Figure \ref{fig:ch4glob}). Major differences in simulated global \chh\ emissions compared to the earlier model version are (i) the stronger increasing trend until the 1970s, (ii) the higher interannual variability, particularly in the last decades, (iii) the declining trend between the early 1970s and the mid 1990s, (iv) the large dip in emissions around 1991 AD, and (v) the stronger increase thereafter until 2012 AD.
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=0.42\textwidth]{/alphadata01/bstocker/topmodel/fig/eCH4_topmodel_vs_old.pdf}
+  %\includegraphics[width=0.42\textwidth]{/alphadata01/bstocker/topmodel/fig/Cpeat_topmodel_vs_old.pdf}
+\end{center}
+\caption{Left: Global total methane emissions, TOPMODEL vs. fixed wetland extent \citep{prigent07grl} (sum of emissions from peatlands, inundated areas, and wet mineral soils, Tg\chh /yr). Right:
+%Global total peatland soil carbon, dynamical peatland model ('TOPMODEL') vs. fixed peatland extent \citep{tarnocai09gbc} (GtC). Note that a reduction (increase) in peatland soil carbon does not correspond to according \coo\ emissions to (uptake from) the atmosphere. C is first transferred to (from) the land use class 'oldpeat', where it is subject to the same rate of decomposition as in mineral soils.
+}
+\label{fig:ch4glob}
+\end{figure}
+
+Compared to the version with fixed prescribed, modelled \chh\ emissions based on the TOPMODEL implementation are higher and more spread out in the Amazon region, much lower in major rice cultivation areas of South and South-East Asia, and lower in the peatland areas of the Hudson Bay Lowlands. Not only the spatial pattern of the mean (1990-2004 AD), but also the change over the 20th century depends on whether a dynamical wetland scheme is applied. Major differences when using the TOPMODEL approach are (i) a large emission increase in the Amazon, (ii) a northward shift of emissions in Siberia, and (iii) a decline in emissions from North America. 
+
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=0.42\textwidth]{/alphadata01/bstocker/topmodel/fig/eCH4_multiGHG_map.pdf}
+  \includegraphics[width=0.42\textwidth]{/alphadata01/bstocker/topmodel/fig/eCH4_inc_multiGHG_map.pdf}\\
+  \includegraphics[width=0.42\textwidth]{/alphadata01/bstocker/topmodel/fig/eCH4_topmodel_map.pdf}
+  \includegraphics[width=0.42\textwidth]{/alphadata01/bstocker/topmodel/fig/eCH4_inc_topmodel_map.pdf}
+\end{center}
+\caption{Methane emissions. Left column: Present day as an average over the years 1990-2004 AD. Right column: Change over the 20th century as a difference of present day minus mean over years 1901-1915 AD. Upper row: based on a fixed wetland extent after \citet{prigent07grl}. Lower row: based on a dynamical wetland extent (TOPMODEL).}
+\label{fig:ptcrit}
+\end{figure}
+
+%\clearpage
+
+\section{Discussion and conclusion} 
+\label{sec:discussion}
+In this chapter, I described how a cost-efficient global-scale model for the spatio-temporal dynamics of inundation areas can be implemented in a land model. This implementation follows a TOPMODEL approach and relies on a minimum set of input data and a simple formulation of the inundated gridcell area fraction as a function of the soil water content and runoff interactively simulated by the land model. This input data captures the effect of sub-grid scale topography on the floodability of each gridcell, will be made available for open-access download, and can be adopted in any land model. The development of this TOPMODEL implementation is motivated by the potential application of LPX-Bern under climate boundary conditions significantly different from today's (Glacial-Interglacial changes, Dansgaard-Oeschger-type climate variability, future scenarios). Under these conditions, prescribing the present-day distribution of wetland and peatland areas may not be satisfactory and impedes a meaningful assessment of effects on terrestrial greenhouse-gas emissions.\\
+
+The results presented here are based on the parametrisations described in Section \ref{sec:topm.methods} and the parameter values presented in Section \ref{sec:params}. The dynamical wetland model with selected (best) parameters captures the major spatial and seasonal features of inundation areas. Simulation results have been compared to remotely sensed data \citep{prigent07grl} and reveal an overestimation in forested regions. This may partly be linked to the difficulties of satellites to capture standing water through a closed canopy. Underestimated inundation areas in regions of widespread wet rice cultivation could be improved by integrating respective data (see below). At this point, no further development of the TOPMODEL approach to simulate inundated areas is planned.\\
+
+The dynamic peatland model development bears some unresolved challenges as outlined below, but is capable already in its present form to capture some of the most important features of the present-day peatland distribution and their C stocks. This opens up new possibilities for hindcasting the retreat and expansion of peatlands, a major player in the carbon cycle reorganisations during the last Deglaciation. Results presented in this chapter suggest the presence of large peatland areas in today's temperate zone at the LGM. Their decay and associated \coo\ emissions are often not accounted for in global terrestrial C budgets. Potential support from paleo archives ({\it Were there really peatlands where the model suggests?}) could make a strong case for this hindcast.\\ 
+
+The work, as it is presented in this chapter, is in a preliminary stage. Further research should address the following issues:
+\begin{itemize}
+\item Simulated soil \chh\ emissions based on fixed prescribed versus dynamically predicted wetlands exhibit distinct spatial patterns and different temporal trends and variability on the global scale. Data on atmospheric \chh\ growth rates, inter-hemispheric gradients, remotely-sensed and spatially resolved atmospheric \chh\ concentrations, and atmospheric inversions could be used to constrain the modeled \chh\ emissions. In particular, the interesting feature of simulated declining and resuming emissions since the 1980s warrants further investigations in the light of global methane budgets \citep{kirschke13}.
+\item Spatial information on rice cultivation areas and the temporal variability of their flooding should be integrated. Currently, the model simulates only the natural dynamics of inundated areas. This could be extended by using rice cultivation maps based on \citet{monfreda09gbc} and provided by the LUH project \citep{hurtt06gcb}.
+\item The hindcasting of LGM peatland areas in regions where no peatlands can be found today should be tested using any available paleo record. Pontential candidates are sphagnum spores from lake sediments \citep{halsey00}.
+\item With the exploration of parameter values as described in Section \ref{sec:params}, it was not possible to simultaneously match total peatland area and C stocks in Siberia and North America individually. This may be linked to two efects. First, simulated peat initiation and subsequent C accumulation is generally $\sim$3 kyr too early in regions where no major ice sheets were present during the last Glacial period (Siberia). This is revealed by comparing simulated and observed (e.g., \citet{mcdonald06sci}) initiation dates ({\it Not shown. Pers. comm. R. Spahni}). It could be tested whether increased susceptibility of young and shallow peat complexes to drought stress and peat decay may be able to improve these results. A postponing of peat buildup in Siberia could also improve results w.r.t. total peat C stocks at present and the temporal dynamics of the peatland C balance during the Holocene. Second, the spatial concentration of peatland areas is not achieved and peatland area in Eastern Siberia appears overestimated when comparing to \citet{tarnocai09gbc}. It could be tested whether the presence of large and concentrated peatland areas feeds back to improving the conditions for further peat expansion through mechanisms associated with increased water storage and retention (``sponge'' effect). Here, a compromise between overestimating Siberian and underestimating North American peatland areas was chosen to achieve good results for global values. %The challenge remains to reduce simulated peatland areas outside the major complexes (Hudson Bay Lowland, West Siberian Lowlands), while preserving high area fractions inside these regions. 
+\item The model described here predicts peat initiation and subsequent C accumulation. A wealth of data on initiation dates is avaiable (e.g., \citet{mcdonald06sci}), and $^{14}$C data reveal temporal information on peat C accumulation rates \citep{yu10grl}. This information could be exploitet to further constrain the simulated peat C dynamics following \citet{spahni13cp}. 
+\item Currently, the model suggests no favourable conditions for long-term soil C accumulation and peatland establishment outside the boreal regions. This is likely due to the parametrisations of plant functional types (PFTs) growing on peatlands and their low optimum temperature for photosynthesis. Inclusion of PFTs adapted to tropical conditions (see \citet{ringeval12}) could allow for higher plant productivity and (potentially) peatland soil C accumulation in the tropics in spite of the faster soil decompostion rates under warm temperatures.
+\end{itemize}
+
+Additional model development and testing has been carried out to address whether accounting for permeability limitation of soil water drainage can improve the prediction of inundation areas (see Appendix \ref{app:soilwater}). However, no discernible improvement was found, which is most likely linked to the nature of the soil model used in LPX-Bern. For this reason, using additional information on permeability limitation is omitted for the sake of simplicity\footnote{Input data and soil water model formulation in LPX is prepared and ready-to-use to account for permeability limitation at any later stage.}.\\
+
+\clearpage
+
+
+%% \begin{figure}[ht!]
+%% \begin{center}
+%%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/wtpos_jan.pdf}
+%%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/wtpos_mar.pdf}\\
+%%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/wtpos_may.pdf}
+%%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/wtpos_jul.pdf}\\
+%%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/wtpos_sep.pdf}
+%%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/wtpos_nov.pdf}
+%% \end{center}
+%% \caption{LPX simulated water table position in mm.}
+%% \label{fig:inund}
+%% \end{figure}
+
+
+
+%% \begin{figure}[ht!]
+%% \begin{center}
+%%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_jan.pdf}
+%%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_mar.pdf}\\
+%%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_may.pdf}
+%%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_jul.pdf}\\
+%%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_sep.pdf}
+%%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/inund_nov.pdf}
+%% \end{center}
+%% \caption{LPX simulated inundated area fraction following the TOPMODEL approach.}
+%% \label{fig:inund}
+%% \end{figure}
+
+%% \begin{figure}[ht!]
+%% \begin{center}
+%%   \includegraphics[width=0.65\textwidth]{/alphadata01/bstocker/topmodel/fig/eCH4_topmodel_vs_old.pdf}
+%% \end{center}
+%% \caption{LPX simulated CH$_4$ emissions from inundated soils with previous model (black) and TOPMODEL approach (red).}
+%% \label{fig:inund}
+%% \end{figure}
+
+
+%% \begin{figure}[ht!]
+%% \begin{center}
+%%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/eCH4_old_map.pdf}
+%%   \includegraphics[width=0.45\textwidth]{/alphadata01/bstocker/topmodel/fig/eCH4_topmodel_map.pdf}
+%% \end{center}
+%% \caption{LPX simulated CH$_4$ emissions from inundated soils with previous model version based on Prigent (left) and TOPMODEL (right).}
+%% \label{fig:inund}
+%% \end{figure}
+
+%%% for appendix
+

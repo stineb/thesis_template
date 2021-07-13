@@ -1,0 +1,289 @@
+\input{preamble_thesis}
+%-------------------------------------------------------------
+%              Beginning of document
+% ------------------------------------------------------------
+
+\begin{document}
+
+%================================ Cover page =================
+
+\include{titlepage}
+\newpage
+\clearpage
+\thispagestyle{empty}
+\cleardoublepage
+\newpage
+
+%================================ Title page =================
+
+\include{titlepage2}
+\newpage
+\clearpage
+\thispagestyle{empty}
+\cleardoublepage
+\newpage
+
+\thispagestyle{empty}
+\begin{figure}[ht!]
+\begin{center}
+  \includegraphics[width=\textwidth]{fig/wordcloud.pdf}
+\end{center}
+\end{figure}
+
+%============================= Abstract ======================
+\pagenumbering{Roman}
+\addcontentsline{toc}{chapter}{Thesis summary}
+\include{abstract}
+\newpage
+\thispagestyle{empty}
+
+%============================= Table of contents  =============
+\newpage
+\thispagestyle{plain} \hspace{1cm}
+\thispagestyle{empty}
+
+% Make a table of contents
+\clearpage
+\addcontentsline{toc}{chapter}{Table of Contents}
+\textsf{\tableofcontents}
+
+\newpage
+\clearpage
+\thispagestyle{empty}
+\cleardoublepage
+\newpage
+
+\pagenumbering{arabic}
+
+% %===========================================================
+
+\include{intro}
+\newpage
+\clearpage
+\thispagestyle{empty}
+\cleardoublepage
+\newpage
+
+\include{multiGHG}
+\newpage
+\clearpage
+\thispagestyle{empty}
+\cleardoublepage
+\newpage
+
+\include{holoLU}
+\clearpage
+\thispagestyle{empty}
+\cleardoublepage
+\newpage
+
+\include{lutrans}
+\newpage
+\clearpage
+\thispagestyle{empty}
+\cleardoublepage
+\newpage
+
+\include{topmodel}
+\clearpage
+\thispagestyle{empty}
+\cleardoublepage
+\newpage
+
+%===============================================================
+%\renewcommand{\chaptermark}[1]{\markboth{\small\textsc{Outlook}}{}}
+%\renewcommand{\sectionmark}[1]{\markright{\small\textsc{Outlook}}{}}
+% Clear all headings
+\fancyhf{}
+% Pagenumber on the left of even and on the right of odd pages
+\fancyhead[LE,RO]{\thepage}
+% Chapter on the right of even pages
+\fancyhead[RE]{\small\textsl{\MakeUppercase{outlook}}}
+% Section on the left of odd pages
+\fancyhead[LO]{\small\textsl{\MakeUppercase{outlook}}}
+% Draw line below heading
+\renewcommand{\headrulewidth}{0.5pt}
+% No footer, no line at the bottom of the page
+\renewcommand{\footrulewidth}{0pt}
+% Redefine pagestyle 'plain' for starting chapters: all empty
+\fancypagestyle{plain}{\fancyhead{}\renewcommand{\headrulewidth}{0pt}}
+% Incrase height of head a little bit
+\addtolength{\headheight}{2pt}
+% End of fancyhdr-Definitions
+\include{outlook}
+\addcontentsline{toc}{chapter}{\numberline{}Outlook}
+\clearpage
+\thispagestyle{empty}
+\cleardoublepage
+\newpage
+%==============================================================
+
+%==============================================================
+\renewcommand{\chaptermark}[1]{\markboth{\small\textsl{\MakeUppercase{\appendixname\ \thechapter}}}{}}
+\renewcommand{\sectionmark}[1]{\markright{\small\textsl{\MakeUppercase{\thesection.\ #1}}}{}}
+% Clear all headings
+\fancyhf{}
+% Pagenumber on the left of even and on the right of odd pages
+\fancyhead[LE,RO]{\thepage}
+% Chapter on the right of even pages
+\fancyhead[RE]{\leftmark}
+% Section on the left of odd pages
+\fancyhead[LO]{\rightmark}
+% Draw line below heading
+\renewcommand{\headrulewidth}{0.5pt}
+% No footer, no line at the bottom of the page
+\renewcommand{\footrulewidth}{0pt}
+% Redefine pagestyle 'plain' for starting chapters: all empty
+\fancypagestyle{plain}{\fancyhead{}\renewcommand{\headrulewidth}{0pt}}
+% Incrase height of head a little bit
+\addtolength{\headheight}{2pt}
+% End of fancyhdr-Definitions
+\appendix
+\include{appendix}
+
+% %==============================================================
+% %--------------------------------------------------------------
+% % Abbildungsverzeichnis
+% %----------------------------------------------------------------% Clear all headings
+% \fancyhf{}
+% % Pagenumber on the left of even and on the right of odd pages
+% \fancyhead[LE,RO]{\thepage}
+% % Chapter on the right of even pages
+% \fancyhead[RE]{\small\textsl{\MakeUppercase{list of figures}}}
+% % Section on the left of odd pages
+% \fancyhead[LO]{\small\textsl{\MakeUppercase{list of figures}}}
+% % Draw line below heading
+% \renewcommand{\headrulewidth}{0.5pt}
+% % No footer, no line at the bottom of the page
+% \renewcommand{\footrulewidth}{0pt}
+% % Redefine pagestyle 'plain' for starting chapters: all empty
+% \fancypagestyle{plain}{\fancyhead{}\renewcommand{\headrulewidth}{0pt}}
+% % Incrase height of head a little bit
+% \addtolength{\headheight}{2pt}
+% % End of fancyhdr-Definitions
+
+% \clearpage
+% \addcontentsline{toc}{chapter}{List of Figures}
+% \listoffigures
+
+% %----------------------------------------------------------
+% % Tabellenverzeichnis
+% %----------------------------------------------------------
+% % Clear all headings
+% \fancyhf{}
+% % Pagenumber on the left of even and on the right of odd pages
+% \fancyhead[LE,RO]{\thepage}
+% % Chapter on the right of even pages
+% \fancyhead[RE]{\small\textsl{\MakeUppercase{list of tables}}}
+% % Section on the left of odd pages
+% \fancyhead[LO]{\small\textsl{\MakeUppercase{list of tables}}}
+% % Draw line below heading
+% \renewcommand{\headrulewidth}{0.5pt}
+% % No footer, no line at the bottom of the page
+% \renewcommand{\footrulewidth}{0pt}
+% % Redefine pagestyle 'plain' for starting chapters: all empty
+% \fancypagestyle{plain}{\fancyhead{}\renewcommand{\headrulewidth}{0pt}}
+% % Incrase height of head a little bit
+% \addtolength{\headheight}{2pt}
+% % End of fancyhdr-Definitions
+
+
+% \addcontentsline{toc}{chapter}{List of Tables}
+% \listoftables
+
+
+% %------------------------------------------------------------
+% % Abkuerzungsverzeichnis
+% %------------------------------------------------------------
+
+% %\clearpage
+% %\addcontentsline{toc}{chapter}{Abbreviations}
+% %\include{Abbreviation}
+
+
+% %------------------------------------------------------------
+% % Seiten-Nummern: Arabisch
+% %------------------------------------------------------------
+%===================== Bibliography  ===========================
+\renewcommand{\bibname}{References}
+% Clear all headings
+\fancyhf{}
+% Pagenumber on the left of even and on the right of odd pages
+\fancyhead[LE,RO]{\thepage}
+% Chapter on the right of even pages
+\fancyhead[RE]{\small\textsl{\MakeUppercase{references}}}
+% Section on the left of odd pages
+\fancyhead[LO]{\small\textsl{\MakeUppercase{references}}}
+% Draw line below heading
+\renewcommand{\headrulewidth}{0.5pt}
+% No footer, no line at the bottom of the page
+\renewcommand{\footrulewidth}{0pt}
+% Redefine pagestyle 'plain' for starting chapters: all empty
+\fancypagestyle{plain}{\fancyhead{}\renewcommand{\headrulewidth}{0pt}}
+% Incrase height of head a little bit
+\addtolength{\headheight}{2pt}
+% End of fancyhdr-Definitions
+
+% % Add bibliography
+% \clearemptydoublepage
+% %\bibliographystyle{sty/jgr}
+%\bibliographystyle{/home/bstocker/mylatex/kluwer.bst}
+\bibliographystyle{bst/copernicus}
+%\bibliographystyle{../../latex/templates/nature/naturemag}
+\renewcommand{\bibname}{References}
+\addcontentsline{toc}{chapter}{\numberline{}References}
+\bibliography{beni.bib}
+
+\cleardoublepage
+\newpage
+
+%===================== Acknowledgments ======================
+%\renewcommand{\chaptermark}[1]{\markboth{\small\textsc{Outlook}}{}}
+%\renewcommand{\sectionmark}[1]{\markright{\small\textsc{Outlook}}{}}
+% Clear all headings
+\fancyhf{}
+% Pagenumber on the left of even and on the right of odd pages
+\fancyhead[LE,RO]{\thepage}
+% Chapter on the right of even pages
+\fancyhead[RE]{\small\textsl{\MakeUppercase{acknowledgments}}}
+% Section on the left of odd pages
+\fancyhead[LO]{\small\textsl{\MakeUppercase{acknowledgments}}}
+% Draw line below heading
+\renewcommand{\headrulewidth}{0.5pt}
+% No footer, no line at the bottom of the page
+\renewcommand{\footrulewidth}{0pt}
+% Redefine pagestyle 'plain' for starting chapters: all empty
+\fancypagestyle{plain}{\fancyhead{}\renewcommand{\headrulewidth}{0pt}}
+% Incrase height of head a little bit
+\addtolength{\headheight}{2pt}
+% End of fancyhdr-Definitions
+\include{acknowledgments}
+\addcontentsline{toc}{chapter}{\numberline{}Acknowledgments}
+\cleardoublepage
+\newpage
+
+%=============== Erklaerung  ======================
+\include{erklaerung}
+
+%=============== Curriculum Vitae  ======================
+\includepdf[pages={1-}]{fig/CV_bstocker_20201129.pdf}
+\addcontentsline{toc}{chapter}{\numberline{}Curriculum Vitae}
+\clearpage
+
+
+\mbox{}
+\thispagestyle{empty}
+\newpage
+\mbox{}
+\thispagestyle{empty}
+\newpage
+
+\thispagestyle{empty}
+\ThisLRCornerWallPaper{1.0}{../fig/coverstyle_back.pdf}
+\cleardoublepage
+\newpage
+% ------------------------------------------------------------
+%                       End of the document
+% ------------------------------------------------------------
+
+\end{document}

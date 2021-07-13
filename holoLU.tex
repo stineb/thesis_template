@@ -1,0 +1,195 @@
+\chapter{Holocene land use change}
+\label{sec:holoLU}
+
+The work published in \citet{stocker11bg} (see Section \ref{sec:holoLU.article}) was initiated in the course of my Master's and finalized after the start of my Ph.D. After its publication, I contributed land use emission estimates to various projects. Original data from \citet{stocker11bg} was used in the IPCC AR5, Chapter 6 \citep{ciais13ipcc}, repeated simulation results conducted with the LPX model version of \citet{stocker13natcc} (LPX 1.0, see Section \ref{sec:multiGHG}) have been used in \citet{lequere13essd}. \\
+
+In spite of our relatively strong statements in \citet{stocker11bg} with respect to the effect of anthropogenic land use change on atmospheric \coo\ on the Holocene time scale, the debate on the Early Anthropogenic Hypothesis \citep{ruddiman03cc} has been all but settled thereafter. Disagreement with the results of \citet{kaplan09} led to lively discussions with J. Kaplan, while W. Ruddiman published a suite of papers \citep{ruddiman11hol, ruddiman13} and a blog post \citep{eah_realclimate} where his original hypothesis was re-stated. This prompted us to writing a direct response and investigating the Holocene carbon budget with its data constraints for the total terrestrial carbon budget \citep{elsig} and peatland C uptake \citep{yu11hol} in more details. A draft is presented in Section \ref{sec:afterword.holoLU} in the form of an article manuscript, but it has never been submitted for publication. \\
+
+Results from more recently conducted simulations with a new version of LPX are briefly discussed in Section \ref{sec:afterword.holoLU} and included in Figure \ref{fig:holoC}. This latest LPX model development additionally includes an interactive nitrogen cycle (see Chapter \ref{sec:multiGHG}), permafrost carbon dynamics, and a scheme dynamically simulating the spatial peatland distribution and carbon dynamics (see Chapter \ref{sec:topmodel}).
+
+
+\section{Article}
+\section*{Sensitivity of Holocene atmospheric CO$_2$ and the modern carbon budget  to early human land use: analyses with a process-based model}
+\label{sec:holoLU.article}
+{B.~D.~Stocker\footnotemark[1]\footnotemark[2],
+K.~Strassmann\footnotemark[1]\footnotemark[2],
+F.~Joos\footnotemark[1]\footnotemark[2],
+}
+\bigskip\\
+\noindent
+{published in \emph{Biogeosciences} Jan.~2011}
+
+\setcounter{ct}{1} \forLoop{1}{20}{ct} {
+\begin{figure}
+\begin{center}
+\includegraphics[width=1.00\textwidth, clip]{../papers/stocker11bg/stocker11bg_holo_LU_cropped_\arabic{ct}}
+\end{center}
+\end{figure}
+\clearpage }
+
+\section{A d\'{e}j\`{a}-vu on Early Land Use}
+\label{sec:afterword.holoLU}
+{B.~D.~Stocker\footnotemark[1]\footnotemark[2],
+K.~Strassmann\footnotemark[1]\footnotemark[2],
+F.~Joos\footnotemark[1]\footnotemark[2],
+}
+\bigskip\\
+\noindent
+{\it unpublished, draft from 20th July; 2011, updated \today}
+
+
+\footnotetext[1]{Climate and Environmental Physics, Physics Institute, University of Bern, Switzerland}
+\footnotetext[2]{Oeschger Centre for Climate Change Research, University of Bern, Switzerland}
+\bigskip
+
+% Here, I will use the material created as a response to Ruddiman's "re-iteration of his argument". Most importantly, I will show the bar graph where I split up the terrestrial C budget for different periods in the Holocene to compare how much is suggested by the Elsig data, peat buildup from Yu, and simulated peat buildup (latest TOPMODEL results), and net land use emissions.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This is copied in and modified from
+% ~/Dropbox/projects/response_realclimate/response_Holocene.txt
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ----------------------------------------------------
+% ABSTRACT
+% ----------------------------------------------------
+\subsection*{Abstract}
+\citet{ruddiman11hol,ruddiman13} draw on new results \citep{kaplan11, yu11hol} published in The Holocene special issue to reinstate the Early Anthropogenic Hypothesis \citep{ruddiman03cc}. We challenge various aspects of this interpretation. (i) No scenario for preindustrial land use change reproduces the 20 ppm-\coo\ increase between 7 and 2 kyr BP. (ii) The \citet{kaplan11} estimates for anthropogenic land use emissions are based on extreme assumptions. (iii) Peat buildup and the total terrestrial carbon budget provide no evidence for large anthropogenic carbon emissions before 5 kyr BP.
+% ----------------------------------------------------
+
+% MAIN TEXT
+
+% *INTRO 
+% ****************************************************
+% ----------------------------------------------------
+% Erlaeuuterung der Hypothese verkuerzt und und nicht in erster Linie auf den Ruddiman-Graphen ausgerichtet, da diese im Paper nicht herangezogen wird.
+% ----------------------------------------------------
+% *intro 1 
+\subsection*{Introduction}
+In a recent set of articles \citep{ruddiman11hol}, a news feature \citet{eah_naturenews}, and a blog post \citep{eah_realclimate} it is argued that new results suggesting surprisingly high preindustrial ALCC emissions \citep{kaplan09} and a matching peat accumulation of similar magnitude \citep{yu11hol} lend fresh support for the Early Anthropogenic Hypothesis \citep{ruddiman03cc}. 
+
+The original hypothesis claims that even before humans started combusting fossil fuels and driving global warming, deforestation by early farmers had drawn up atmospheric \coo\ in amounts high enough to prevent the onset of a new ice age. As is revealed by analyses of ice core records, \coo\ has steadily increased througout the last 7000 years (7 kyr). Compared to previous warm periods, this \coo\ increase is anomalous; arguably 40 parts per million (ppm) off a "natural evolution". If this atmospheric signal was indeed unnatural, it calls for an immense human impact before the Industrial era. 
+
+% *intro 2
+% ----------------------------------------------------
+% Satz "Unfortunately, this theory has been plagued with a shortcoming: ..." ersetzt durch Referenzen.
+% ----------------------------------------------------
+However, earlier modeling \citep{strassmann08tel, olofssonhickler2008, pongratz09, stocker11bg} and experimental \citep{elsig} studies have concluded that anthropogenic land use emissions are too small and occur too late to explain the Holocene \coo\ record. The new estimates by \citet{kaplan09} for cumulative preindustrial (pre-1850 AD) carbon emissions related to anthropogenic land cover change (ALCC) take into account the higher per-capita land use of early farmers and suggest strikingly higher preindustrial emissions than previously reported: 340 GtC. Although \citet{ruddiman11hol} claim otherwise, this factor is accounted for in all of the few modeling studies of preindustrial land use impact that cover a substantial part of the Holocene \citep{olofssonhickler2008, stocker11bg}, and its consideration does not invalidate that work; nor does it justify the high emission estimates by \citet{kaplan11}. Other estimates for preindustrial ALCC emissions are in the range of  69-114 GtC \citep{olofssonhickler2008, strassmann08tel, pongratz09, stocker11bg}. Cumulative pre-1850 AD emissions presented in Chapter \ref{sec:lutrans} of this thesis are 71.8 GtC, also in line with these earlier estimates. Hence, the consideration of wood harvesting and effects of shifting cultivation do not alter conclusions drawn from earlier analyses.
+
+% *intro 3
+% ----------------------------------------------------
+% "Emerging view" ist nicht Thema im Paper, deshalb hier nicht mehr darauf verwiesen.
+% ----------------------------------------------------
+Further, \citet{ruddiman11hol} and \citet{ruddiman13} invoke new estimates for peat buildup over the Holocene (267 GtC between 7 and 0 kyr BP, \citet{yu11hol}) as evidence for a correspondingly large anthropogenic carbon source under the constraint of the total terrestrial carbon budget as inferred from parallel measurements of \coo\ and its isotopic composition ($\delta^{13}$C) \citep{elsig}. We show that the component of the terrestrial carbon budget left unexplained by peat uptake before 5 kyr BP is small and does not call for an anthropogenic source large enough to explain the \coo\ rise in the respective period.
+
+% *section II
+% ****************************************************
+% NO SCENARIO FOR PREINDUSTRIAL LAND USE CHANGE REPRODUCES THE RAPID CO2 INCREASE BETWEEN 7 AND 2 KYR BP
+% ----------------------------------------------------
+% Dies ist ein neuer Abschnitt, der die Zeitreihengrafik (total land use areas, cumulative emissions und CO2-Signal) praesentieren soll.
+% ----------------------------------------------------
+
+% *section II 1
+% *data sets
+\subsection*{Preindustrial ALCC emission estimates}
+\begin{figure}
+\begin{center}
+  \includegraphics[width=\textwidth]{../fig/holoC_tseries.pdf}
+\end{center}
+  \caption[Time series of total land use area, cumulative C emissions, and atmospheric \coo\ in Holocene land use simulations]{{\it Top:} global total area under anthropogenic land use (sum of cropland, pasture and urban land). {\it Middle:} cumulative net emissions to the atmosphere. Net emissions quantify the amount of carbon remaining in the atmosphere after feedbacks from \coo\ fertlisation effects. {\it Bottom:} Change in atmospheric \coo\ concentration relative to the concentration at the start of the simulation (263 ppm). \coo\ increase without the fertilization feedback is given by the thin lines. \coo\ anomalies relative to 8 kyr BP (259 ppm) measured on the EPICA Dome C ice core \citep{monnin2001sci} (left panel) and Law Dome \citep{etheridge96jgr} (right panel) are depicted by the grey symbols with 2-$\sigma$ error bars. Time series of cumulative emissions and \coo\ anomalies represent 31-yr running averages. The simulated natural interannual variability in response to climatic variations is illustrated by the light grey curve.}
+\label{fig:holoC_tseries}
+\end{figure}
+
+Different data sets for Holocene ALCC are applied in BernCC-LPJ, a Global Dynamic Vegetation Model, coupled to a simple atmosphere-ocean carbon cycle model. A description of the model setup and analysis is presented in \citet{stocker11bg}. The HYDE data \citep{kleingoldewijk2011geb} features a constant per-capita land requirement throughout the entire simulation period (12 - 0 kyr BP). This assumption has been critisized \citep{kaplan09, stocker11bg} because this is likely to underestimate early ALCC. The KK10 data set \citet{kaplan11} is based on a relationship between population {\it density} and land use as established from European historical documents. This information does not allow a distinction between croplands and pastures. We thus apply different respective shares (50:50\%, 70:30\% and 30:70\% of total land use area), while holding the spatial pattern congruent.
+
+
+% FIGURE 1 (time series)
+ 
+% *section II 2
+% *cumulative emissions
+% ----------------------------------------------------
+% Mit aktueller trunk-Version sind die Emissionen wiederum ca. 10% geringer. Unschoen. Ursachen dafuer hab ich nicht ergruendet. Koennte ev. wieder tag-Version, die ich fuer Paper gebraucht hab, verwenden.
+% ----------------------------------------------------
+Striking differences in total land use areas in HYDE and KK10 (Figure \ref{fig:holoC_tseries}a) are mirrored in cumulative emissions. Pre-1850 AD cumulative primary emissions are 158 for KK10 and 58 GtC for HYDE. \coo\ fertilization reduces emissions to 126 and 44 GtC (Figure \ref{fig:holoC_tseries}b).
+
+% *section II 3
+% *CO2 increase
+% ----------------------------------------------------
+% Achtung: Im Jahr 1850 haben auch wir eine airborne fraction von 16%. Wir koennen also die 340 GtC = 24 ppm - Rechnung nicht einfach vernichten. Aber ein bisschen umformulieren...
+% ----------------------------------------------------
+Slow emission rates in early millennia cause relatively small increases in atmospheric \coo\ (Figure \ref{fig:holoC_tseries}c). The effect before 3 kyr BP (1000 BC) is marginal even when applying the KK10 data and causes only an increase of 4 ppm by 1 AD and 11 ppm by 1850 AD. This corresponds to an airborne fraction of about 13\% at 1 AD. Due to the compensating response of carbonate in ocean sediments \citep{archer97grl}, the airborne fraction is reduced to ~9\% for emissions occurring on multi-millennial time scales \citep{joos96tel, stocker11bg}. This feedback cannot be neglected in the context of Holocene land use emissions.
+
+% *section II 4
+% *CO2 increase in Kaplan
+Pre-1850 AD primary emissions presented in \citet{kaplan09} amount to 325-357 GtC for the KK10 data set. This exceeds our estimates by more than 100\%. Reasons for this disagreement are discussed in Section \ref{sec:hololu.comparison} and in \citet{stocker11bg}. \citet{ruddiman11hol} equate the emission estimate of \citet{kaplan09} with an increase in atmospheric \coo\ by 24 ppm until 1850 AD, assuming a constant airborne fraction of 15\%. This ignores the temporal evolution of ALCC emissions and the sensitivity of the airborne fraction to the rate of emissions. The present analysis suggests an increase by ~8 ppm until 1 AD even when considering emissions as high as proposed by Kaplan et al. (2010). This falls considerably short of the measured 20 ppm increase in the respective time window. Explaining a 40 ppm "anomaly" relative to previous interglacials appears by far out of reach for any scenario of prehistoric and preindustrial ALCC.
+
+
+\subsection*{Comparison to Kaplan et al.,  2009 estimates}
+\label{sec:hololu.comparison}
+% *section III
+% ****************************************************
+% THE KAPLAN ET AL. (2010) ESTIMATES FOR ANTHROPOGENIC LAND USE EMISSIONS ARE BASED ON UPPER END ASSUMPTIONS. 
+% ----------------------------------------------------
+% Diese Paragraphen hab ich weitgehend von dejavu-version v. Kuno uebernommen. Dass wir auf pastures so ne Zunahme simulieren, duerfen wir meiner Meinung aber nicht kaschieren. Deshalb ein paar zusaetzliche Saetze.
+% ----------------------------------------------------
+
+% *section III 1
+% *cropland/pasture
+Several indications suggest that the model-based estimate presented by \citet{kaplan09} might be biased high. In their model, no distinction is made between effects of ALCC on carbon stocks on pastures and on croplands. A large fraction of global agricultural land is used for pasture, more than half at present. Therefore, getting the carbon dynamics wrong on pastures will bias emissions. Their model assumes all above-ground biomass to be removed annually from pastures and thus predicts a substantial loss of soil carbon when natural land is converted to pasture. This contrasts field data which report no significant changes or small increases on the order or 10\% \citep{guogifford02gcb, murty02gcb}.
+
+% *section III 2
+% *soil depth
+On pastures and croplands alike, carbon depletion in their model affects a soil layer of 3 meters. Field data, in contrast, show carbon losses on croplands only within the top meter or less. However, millennial scale processes, not readily recorded by the field data, could potentially affect deeper layers. In any case, assuming effects in a soil column of 3 m yields a high absolute loss, even where the simulated reduction in soil carbon concentration is compatible with other field and modeling studies.
+
+% *section III 3
+% *our model
+The model applied here simulates a mean reduction in the top 1 m soil column by ~30\% after conversion on croplands and a mean increase by ~8\% on pastures. This agrees well with field data \citep{guogifford02gcb, murty02gcb}.
+
+% *section III 4
+% *comparison to other studies
+Simulated emissions per unit area land converted for agricultural use can be assessed by comparing results based on the HYDE data or data sets featuring similar land use areas \citep{pongratz08gbc}. The Kaplan emissions are higher by 60 to 280\% than any other estimate published to date \citet{defries99gbc, olofssonhickler2008, pongratz09, strassmann08tel, stocker11bg}. \citet{ruddiman11hol} and \citet{kaplan11} do not address these discords with earlier model and field studies.
+
+\subsection*{The terrestrial carbon budget}
+% *section IV
+% ****************************************************
+% PEAT BUILDUP AND THE TOTAL TERRESTRIAL CARBON BUDGET PROVIDE NO EVIDENCE FOR LARGE ANTHROPOGENIC CARBON EMISSIONS BEFORE 5 KYR BP.
+% ----------------------------------------------------
+% Hier habe ich einiges umgeschrieben, da ich nun den Plot gemacht hab. Habe hier nicht mehr auf die Falschinterpretation von Elsigs 40 GtC peat durch R. hingewiesen. 
+% ----------------------------------------------------
+% *section IV 1
+% *intro to c-budget
+The total terrestrial carbon budget can be inferred from parallel measurements of $\delta^{13}$C and \coo\ \citep{elsig}. Holocene peat buildup acts as a dominant terrestrial carbon sink on millennial time scales. By definition, peat buildup plus other terrestrial processes, e.g., ALCC, add up to the total terrestrial carbon budget.\citet{ruddiman11hol} argue that peat buildup between since 7 kyr BP (267 GtC) justifies an accordingly large anthropogenic source and derive that this supports the 340 GtC ALCC emissions suggested by \citet{kaplan09}.
+
+\begin{figure}
+\begin{center}
+  \includegraphics[width=0.75\textwidth]{../fig/holoC.pdf}
+\end{center}
+  \caption[Components of the terrestrial carbon budget for different Holocene  periods]{Components of the terrestrial carbon budget for different periods. The total terrestrial carbon budget (green) is based on $\delta^{13}$C and \coo\ measurements\citep{elsig}. Peat uptake (blue) is given for the data from \citet{yu11hol} (light blue upper end) and ``constructed'' data based on \citet{tarnocai09gbc} (dark blue lower end). Numbers are calculated using a their estimate for the present-day total C stock in northern peatlands and assuming the same accumulation/decomposition rates and the same extra-boreal stock as in \citet{yu11hol}. Yellow bars repersent the component of the total terrestrial budget left unexplained
+by peat buildup after \citet{yu11hol} (light yellow) and \citet{tarnocai09gbc} (dark yellow). The range of estimates for land use-related emissions is given by the black (grey) bar, where the upper end represents the HYDE scenario, the lower end of the black bar represents KK10 as simulated by BernCC-LPJ, and the lower end of the grey bar represents values presented in \citet{kaplan09}. Error bars represent the standard error (1$\sigma$) in each direction. Symbols (circles, diamonds, squares) indicate the total terrestrial budget (green) and the peatland C budget (blue) for different LPX simulations based on the HYDE data and further presented and discussed in Section \ref{sec:topmodel}.}
+\label{fig:holoC}
+\end{figure}
+
+
+% *section IV 2
+% *-5 kyr BP
+This reasoning ignores the temporal variations of the carbon sinks and sources in different periods (see Figure \ref{fig:holoC}). There is a significant difference between the ages of 7 kyr and 5 kyr. The trend reversal from falling to rising atmospheric \coo\ concentrations occurred around 7 ka BP, and not, as Ruddiman's iconic graph presented in \citet{eah_realclimate} suggests, at 5 ka. The interval between 7 and 5 ka BP corresponds to the highest rate of increase in the Holocene atmospheric \coo\ record, while human activities during this period are estimated at very low levels in any scenario \citep{olofssonhickler2008, stocker11bg}, including those used by \citet{kaplan11}. The data-based land uptake estimate of \citet{elsig} for the period from 7 to 5 ka BP is close to estimates for peat buildup by \citet{yu11hol} and perfectly compatible with the somewhat smaller estimate of carbon storage in northern peatlands by \citet{tarnocai09gbc}. Consequently, no large anthropogenic source is required to close the carbon budget for this period.
+
+% FIGURE 2 (C-budget)
+
+% *section IV 3
+% *5-0 kyr BP
+The picture is different in subsequent periods. Between 5 and 2 kyr BP, other processes than peat buildup are responsible for a large source of about 100 GtC. Even high estimates of \citet{kaplan09} do not account for this amount, suggesting other non-anthropogenic processes as important carbon sources, for example changes in the Monsoon system (as documented by \citet{burns11} in the same special issue of Holocene), drying of the Sahara \citep{indermuehle99nat} and a potential loss of former peatlands. \citet{schurgers06cp} simulate a reduction in terrestrial (non-peatland) carbon storage of ~200 GtC after the mid-Holocene. Between 2 kyr BP and present, ALCC emissions appear to be large enough to close the terrestrial budget together with peat uptake. However, upper-end estimates ``over-explain'' the residual component, termed ``other processes'' in Figure \ref{fig:holoC}. However, uncertainties in the observation-derived total terrestrial C budget are considerable.
+
+Results from more recently conducted simulations with a new version of LPX are included in Figure \ref{fig:holoC}. The model applied was forced with HYDE land use data \citep{kleingoldewijk2011geb} and additionally includes an interactive nitrogen cycle (see Chapter \ref{sec:multiGHG}), permafrost carbon dynamics, and a scheme dynamically simulating the spatial peatland distribution and carbon dynamics (see Chapter \ref{sec:topmodel}). Modeling results reveal a general underestimation of the positive C terrestrial balance in the early Holocene (11-7 kyr BP) and suggest a positive C balance throughout the mid- to late Holocene, while observational data points to the land becoming a net source of C after 5 kyr BP. At the same time, the model successfully captures the continuing C sink in peatlands during this period. Hence, the model has deficiencies in capturing other processes responsible for C loss from the terrestrial biosphere. Reasons may include an underestimation of the amplitude of vegetation and associated C changes in response to climate and insolation shifts, an underestimation of the amplitude of climate changes in the prescribed fields (TraCE-21ka, \citet{liu09}), and/or an underestimation of anthropogenic effects through changes in land use and land cover (the HYDE data set \citep{kleingoldewijk2011geb} is applied here). 
+
+
+\subsection*{Conclusion}
+% *section V
+% ****************************************************
+% CONCLUSION
+% ----------------------------------------------------
+% Da der "ikonische" Ruddiman-Graph in seinem Paper nicht erscheint, moechte ich par. 15 von Kunos Version nicht 1:1 uebernehmen.
+% ----------------------------------------------------
+% *section V 1
+As outlined by \citet{elsig} and also confirmed by recent carbon cycle-climate model simulations \citep{menvieljoos12}, the Holocene \coo\ evolution results from a subtle balance of various and partly opposing terrestrial as well as oceanic processes including coral reef growth, carbonate compensation of earlier land uptake, ocean-sediment interactions related to the glacial Termination I, and sea surface temperature changes. This balance appears unique for each interglacial with its distinct preceding glacial termination and forcing evolution. On top of these natural processes, ALCC became a driving factor of significant impact on atmospheric \coo\ only in the late Holocene (last 3 kyr). 
+
+% *section V 2
+The picture emerging from these considerations is quite different from the one suggested by the Early Anthropogenic Hypothesis. The rapid rise in atmospheric \coo\ between 7 and 5 kyr BP predates any meaningful anthropogenic emissions in any land use change scenario by several thousand years, and therefore cannot be explained with agricultural activities of early civilizations.
